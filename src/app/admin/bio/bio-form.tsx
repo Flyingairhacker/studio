@@ -15,7 +15,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { revalidatePath } from "next/cache";
 
 const bioSchema = z.object({
   name: z.string().min(1, "Name is required"),
