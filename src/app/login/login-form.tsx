@@ -48,17 +48,21 @@ export default function LoginForm() {
       } catch (e: any) {
         switch (e.code) {
           case 'auth/user-not-found':
-            // If user does not exist, create it
+          case 'auth/invalid-credential':
+            // If user does not exist (or credential is bad which might mean user not found), try to create it.
             try {
               await createUserWithEmailAndPassword(auth, data.email, data.password);
               router.push("/");
             } catch (creationError: any) {
-              setError("Failed to create a new admin account.");
-              console.error(creationError);
+               if (creationError.code === 'auth/email-already-in-use') {
+                 setError("Invalid credentials. Please try again.");
+               } else {
+                 setError("Failed to create a new admin account.");
+                 console.error(creationError);
+               }
             }
             break;
           case 'auth/wrong-password':
-          case 'auth/invalid-credential':
             setError("Invalid credentials. Please try again.");
             break;
           default:
