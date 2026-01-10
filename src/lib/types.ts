@@ -23,7 +23,7 @@ export interface TechStack {
 }
 
 export interface Service {
-  id: string;
+  id:string;
   title: string;
   description: string;
   Icon: LucideIcon;
@@ -53,4 +53,6 @@ export interface Bio {
     title: string;
     description: string;
     avatarUrl: string;
+    contactTitle?: string;
+    contactSubtitle?: string;
 }

@@ -18,6 +18,9 @@ import SectionTitle from "../ui/section-title";
 import GlassCard from "../ui/glass-card";
 import { useToast } from "@/hooks/use-toast";
 import { saveMessage } from "@/app/contact/actions";
+import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
+import type { Bio } from "@/lib/types";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -27,6 +30,10 @@ const formSchema = z.object({
 
 const ContactClient = () => {
   const { toast } = useToast();
+  const firestore = useFirestore();
+  const bioRef = useMemoFirebase(() => firestore ? doc(firestore, "bio", "main-bio") : null, [firestore]);
+  const { data: bio, isLoading } = useDoc<Bio>(bioRef);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -57,8 +64,8 @@ const ContactClient = () => {
   return (
     <section id="contact" className="container mx-auto px-4 py-20 md:px-6 md:py-32">
       <SectionTitle
-        title="Request Intel"
-        subtitle="Open a secure channel for inquiries, collaborations, or to discuss a project. All transmissions are monitored."
+        title={bio?.contactTitle || "Request Intel"}
+        subtitle={bio?.contactSubtitle || "Open a secure channel for inquiries, collaborations, or to discuss a project. All transmissions are monitored."}
       />
       <GlassCard className="max-w-3xl mx-auto mt-16 p-8">
         <Form {...form}>
