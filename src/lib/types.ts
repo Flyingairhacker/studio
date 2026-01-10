@@ -42,3 +42,11 @@ export interface ContactMessage {
   message: string;
   sentAt: Timestamp | Date | string; 
 }
+
+export interface Bio {
+    id: string;
+    name: string;
+    title: string;
+    description: string;
+    avatarUrl: string;
+}

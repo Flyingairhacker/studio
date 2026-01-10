@@ -1,5 +1,11 @@
+"use client";
+
 import { Button } from "../ui/button";
 import { ArrowDown, Code } from "lucide-react";
+import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
+import type { Bio } from "@/lib/types";
+import { doc } from "firebase/firestore";
+import { Skeleton } from "../ui/skeleton";
 
 const AnimatedText = ({ text }: { text: string }) => {
   return (
@@ -18,6 +24,10 @@ const AnimatedText = ({ text }: { text: string }) => {
 };
 
 const Hero = () => {
+  const firestore = useFirestore();
+  const bioRef = useMemoFirebase(() => firestore ? doc(firestore, "bio", "main-bio") : null, [firestore]);
+  const { data: bio, isLoading } = useDoc<Bio>(bioRef);
+
   return (
     <section className="relative container mx-auto flex min-h-[calc(100vh-80px)] items-center px-4 py-20 md:px-6">
       <div className="absolute inset-0 -z-10 flex items-center justify-center overflow-hidden">
@@ -27,25 +37,39 @@ const Hero = () => {
       </div>
       <div className="grid md:grid-cols-2 gap-12 items-center">
         <div className="space-y-6">
-          <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tighter">
-            <span className="block text-primary text-glow"><AnimatedText text="Flutter & IoT" /></span>
-            <span className="block text-primary-foreground"><AnimatedText text="Systems Architect" /></span>
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-lg">
-            Specializing in creating robust, scalable, and intelligent systems by bridging the gap between embedded hardware and high-performance mobile applications.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" asChild>
-              <a href="#projects">
-                <Code className="mr-2"/> View Projects
-              </a>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-               <a href="#contact">
-                Contact Me <ArrowDown className="ml-2 animate-bounce"/>
-              </a>
-            </Button>
-          </div>
+          {isLoading ? (
+            <>
+              <Skeleton className="h-16 w-3/4" />
+              <Skeleton className="h-10 w-1/2" />
+              <Skeleton className="h-20 w-full" />
+              <div className="flex gap-4">
+                <Skeleton className="h-12 w-36" />
+                <Skeleton className="h-12 w-36" />
+              </div>
+            </>
+          ) : (
+            <>
+              <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tighter">
+                <span className="block text-primary text-glow"><AnimatedText text={bio?.title.split('&')[0] ?? "Flutter & IoT"} /></span>
+                <span className="block text-primary-foreground"><AnimatedText text={bio?.title.split('&')[1] ?? "Systems Architect"} /></span>
+              </h1>
+              <p className="text-lg text-muted-foreground max-w-lg">
+                {bio?.description ?? "Specializing in creating robust, scalable, and intelligent systems by bridging the gap between embedded hardware and high-performance mobile applications."}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button size="lg" asChild>
+                  <a href="#projects">
+                    <Code className="mr-2"/> View Projects
+                  </a>
+                </Button>
+                <Button size="lg" variant="outline" asChild>
+                   <a href="#contact">
+                    Contact Me <ArrowDown className="ml-2 animate-bounce"/>
+                  </a>
+                </Button>
+              </div>
+            </>
+          )}
         </div>
         <div className="relative h-80 md:h-[500px] w-full">
             <div className="w-full h-full glass-card p-4">
