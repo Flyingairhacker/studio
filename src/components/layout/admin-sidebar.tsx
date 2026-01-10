@@ -55,7 +55,7 @@ export default function AdminSidebar() {
         <SidebarMenu>
           {menuItems.map(({ href, label, icon: Icon }) => (
             <SidebarMenuItem key={href}>
-              <Link href={href} legacyBehavior passHref>
+              <Link href={href}>
                 <SidebarMenuButton
                   isActive={pathname.startsWith(href)}
                   tooltip={{ children: label }}
