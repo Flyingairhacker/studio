@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -6,7 +7,7 @@ import { z } from "zod";
 import { useEffect, useTransition } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
-import { doc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import type { Bio } from "@/lib/types";
 
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { updateBio } from "./actions";
+import { revalidatePath } from "next/cache";
 
 const bioSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -59,22 +60,32 @@ export default function BioForm() {
   }, [bio, reset]);
 
   const processSubmit = async (data: BioFormData) => {
+    if (!firestore) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Firebase is not available.",
+        });
+        return;
+    }
+    
     startTransition(async () => {
-      const result = await updateBio(data);
-
-      if (result.error) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: result.error,
-        });
-      } else {
-        toast({
-          title: "Bio Updated",
-          description: "Your public biography has been successfully updated.",
-        });
-        reset(data); // Resets the form's dirty state
-      }
+        try {
+            if(bioRef) {
+                await setDoc(bioRef, data, { merge: true });
+                toast({
+                  title: "Bio Updated",
+                  description: "Your public biography has been successfully updated.",
+                });
+                reset(data); // Resets the form's dirty state
+            }
+        } catch (e: any) {
+             toast({
+                variant: "destructive",
+                title: "Error",
+                description: `Failed to update bio: ${e.message}`,
+            });
+        }
     });
   };
 
