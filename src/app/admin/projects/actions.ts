@@ -3,9 +3,20 @@
 import { revalidatePath } from "next/cache";
 import { addDoc, collection, deleteDoc, doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { z } from "zod";
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { firebaseConfig } from '@/firebase/config';
 
-import { db } from "@/lib/firebase";
 import { Project } from "@/lib/types";
+
+// Server-side safe Firebase initialization
+function getDb() {
+    if (getApps().length === 0) {
+        initializeApp(firebaseConfig);
+    }
+    return getFirestore(getApp());
+}
+
 
 const projectSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -26,9 +37,7 @@ export async function addProjectAction(formData: FormData) {
         return { error: "Invalid data provided.", details: validatedFields.error.flatten().fieldErrors };
     }
     
-    if (!db) {
-        return { error: "Firebase is not available." };
-    }
+    const db = getDb();
     
     const { tags, ...rest } = validatedFields.data;
     const newProjectData = {
@@ -56,9 +65,7 @@ export async function updateProjectAction(id: string, formData: FormData) {
         return { error: "Invalid data provided.", details: validatedFields.error.flatten().fieldErrors };
     }
     
-    if (!db) {
-        return { error: "Firebase is not available." };
-    }
+    const db = getDb();
 
     const { tags, ...rest } = validatedFields.data;
     const updatedProjectData = {
@@ -80,9 +87,7 @@ export async function updateProjectAction(id: string, formData: FormData) {
 }
 
 export async function deleteProjectAction(id: string) {
-    if (!db) {
-        return { error: "Firebase is not available." };
-    }
+    const db = getDb();
 
     try {
         await deleteDoc(doc(db, "projects", id));
