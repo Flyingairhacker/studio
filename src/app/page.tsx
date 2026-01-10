@@ -5,21 +5,24 @@ import Header from '@/components/sections/header';
 import Hero from '@/components/sections/hero';
 import Projects from '@/components/sections/projects';
 import TechStack from '@/components/sections/tech-stack';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export default function Home() {
   return (
     <>
-      <div className="relative z-10 flex min-h-screen flex-col">
-        <Header />
-        <main className="flex-grow">
-          <Hero />
-          <TechStack />
-          <Projects />
-          <ContactSection />
-        </main>
-        <Footer />
-      </div>
-      <BackgroundScene />
+      <FirebaseClientProvider>
+        <div className="relative z-10 flex min-h-screen flex-col">
+          <Header />
+          <main className="flex-grow">
+            <Hero />
+            <TechStack />
+            <Projects />
+            <ContactSection />
+          </main>
+          <Footer />
+        </div>
+        <BackgroundScene />
+      </FirebaseClientProvider>
     </>
   );
 }

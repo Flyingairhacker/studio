@@ -1,10 +1,8 @@
 import GlassCard from "@/components/ui/glass-card";
-import { getProjects } from "@/lib/data-access";
 import ProjectList from "./project-list";
+import { FirebaseClientProvider } from "@/firebase/client-provider";
 
 export default async function AdminProjectsPage() {
-    const projects = await getProjects();
-    
     return (
         <div className="space-y-8">
             <div>
@@ -15,7 +13,9 @@ export default async function AdminProjectsPage() {
             </div>
 
             <GlassCard className="p-0 md:p-0">
-                <ProjectList initialProjects={projects} />
+                <FirebaseClientProvider>
+                    <ProjectList />
+                </FirebaseClientProvider>
             </GlassCard>
         </div>
     );

@@ -1,5 +1,10 @@
+import { FirebaseClientProvider } from "@/firebase/client-provider";
 import BrandingClient from "./branding-client";
 
 export default function AdminBrandingPage() {
-  return <BrandingClient />;
+  return (
+    <FirebaseClientProvider>
+      <BrandingClient />
+    </FirebaseClientProvider>
+  );
 }

@@ -1,53 +1,31 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { login } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
+import { Terminal, Eye, EyeOff } from "lucide-react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { useAuth } from "@/firebase";
+import { useRouter } from "next/navigation";
 
 const schema = z.object({
-  password: z.string().min(1, "Access key is required."),
+  email: z.string().email("Invalid email address."),
+  password: z.string().min(6, "Password must be at least 6 characters."),
 });
 
 type FormData = z.infer<typeof schema>;
 
-const DecryptingText = ({ text, onComplete }: { text: string, onComplete: () => void }) => {
-  const [decryptedText, setDecryptedText] = useState("");
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    let i = 0;
-    const chars = "!<>-_\\/[]{}—=+*^?#________";
-    
-    interval = setInterval(() => {
-      let newText = text.substring(0, i + 1);
-      for (let j = i + 1; j < text.length; j++) {
-        newText += chars[Math.floor(Math.random() * chars.length)];
-      }
-      setDecryptedText(newText);
-      i++;
-      if (i >= text.length) {
-        clearInterval(interval);
-        setDecryptedText(text);
-        onComplete();
-      }
-    }, 50);
-
-    return () => clearInterval(interval);
-  }, [text, onComplete]);
-
-  return <span className="text-primary">{decryptedText}</span>;
-}
-
 export default function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [isDecrypting, setIsDecrypting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  
+  const auth = useAuth();
+  const router = useRouter();
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -55,42 +33,69 @@ export default function LoginForm() {
 
   const onSubmit = (data: FormData) => {
     setError(null);
-    setIsDecrypting(true);
     startTransition(async () => {
-      // The decryption animation will call this after it's done
+      if (!auth) {
+        setError("Auth service not available.");
+        return;
+      }
+      try {
+        await signInWithEmailAndPassword(auth, data.email, data.password);
+        router.push("/admin");
+      } catch (e: any) {
+        switch (e.code) {
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':
+            setError("Invalid credentials. Please try again.");
+            break;
+          default:
+            setError("An unknown error occurred. Please try again later.");
+            console.error(e);
+        }
+      }
     });
   };
-
-  const handleDecryptionComplete = async () => {
-    const formData = new FormData();
-    // Have to get value directly because react-hook-form state might be stale
-    const passwordInput = document.getElementById("password") as HTMLInputElement;
-    formData.append("password", passwordInput.value);
-    
-    const result = await login(formData);
-    if (result?.error) {
-      setError(result.error);
-      setIsDecrypting(false);
-    }
-    // On success, the server action will redirect.
-  }
 
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
-        <div className="relative">
-          <Input
-            id="password"
-            type="password"
-            {...register("password")}
+        <div className="space-y-2">
+           <Input
+            id="email"
+            type="email"
+            {...register("email")}
             className="font-code bg-background/50 border-primary/30 focus:border-primary focus:ring-primary/50"
-            placeholder="****************"
-            disabled={isPending || isDecrypting}
+            placeholder="operator@domain.sec"
+            disabled={isPending}
           />
+           {errors.email && <p className="text-red-500 text-xs px-1">{errors.email.message}</p>}
         </div>
-        {errors.password && <p className="text-red-500 text-xs">{errors.password.message}</p>}
-        <Button type="submit" className="w-full font-bold" disabled={isPending || isDecrypting}>
-          {isPending || isDecrypting ? "Authenticating..." : "Authorize"}
+        <div className="relative space-y-2">
+            <div className="relative">
+                 <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    {...register("password")}
+                    className="font-code bg-background/50 border-primary/30 focus:border-primary focus:ring-primary/50 pr-10"
+                    placeholder="****************"
+                    disabled={isPending}
+                />
+                <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-primary"
+                    disabled={isPending}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                    {showPassword ? <EyeOff size={18}/> : <Eye size={18} />}
+                </button>
+            </div>
+
+          {errors.password && <p className="text-red-500 text-xs px-1">{errors.password.message}</p>}
+        </div>
+        
+        <Button type="submit" className="w-full font-bold" disabled={isPending}>
+          {isPending ? "Authenticating..." : "Authorize"}
         </Button>
       </form>
 
@@ -100,13 +105,6 @@ export default function LoginForm() {
           <AlertTitle>Authentication Failed</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-      )}
-
-      {isDecrypting && !error && (
-        <div className="mt-4 text-green-400 text-sm">
-          <p>&gt; Access key received. Decrypting...</p>
-          <p>&gt; <DecryptingText text="****************" onComplete={handleDecryptionComplete} /></p>
-        </div>
       )}
     </>
   );

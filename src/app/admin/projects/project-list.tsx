@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import type { Project } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -32,12 +32,25 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { ProjectForm } from "./project-form";
-import { deleteProject } from "./actions";
+import { deleteProjectAction } from "./actions";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection, query, orderBy } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default function ProjectList({ initialProjects }: { initialProjects: Project[] }) {
+
+export default function ProjectList() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedProject, setSelectedProject] = useState<Project | undefined>(undefined);
     const { toast } = useToast();
+
+    const firestore = useFirestore();
+
+    const projectsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, "projects"), orderBy("title", "asc"));
+    }, [firestore]);
+
+    const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
 
     const handleEdit = (project: Project) => {
         setSelectedProject(project);
@@ -50,7 +63,7 @@ export default function ProjectList({ initialProjects }: { initialProjects: Proj
     };
     
     const handleDelete = async (id: string) => {
-        const result = await deleteProject(id);
+        const result = await deleteProjectAction(id);
         if (result.error) {
             toast({ variant: "destructive", title: "Error", description: result.error });
         } else {
@@ -62,22 +75,41 @@ export default function ProjectList({ initialProjects }: { initialProjects: Proj
         setIsFormOpen(false);
         setSelectedProject(undefined);
     };
+    
+    if (isLoading) {
+        return (
+             <div className="p-4">
+                <div className="flex items-center justify-between p-4 border-b border-border/50">
+                    <Skeleton className="h-8 w-48" />
+                    <Skeleton className="h-10 w-32" />
+                </div>
+                <div className="space-y-2 p-4">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div>
             <div className="flex items-center justify-between p-4 border-b border-border/50">
                  <h2 className="text-xl font-headline font-semibold">
-                    Projects ({initialProjects.length})
+                    Projects ({projects?.length || 0})
                 </h2>
-                <ProjectForm project={selectedProject} onClose={handleFormClose}>
-                   <Button onClick={handleAdd}>
-                     <PlusCircle className="mr-2 h-4 w-4" />
-                     New Project
-                   </Button>
-                </ProjectForm>
+                <Button onClick={handleAdd}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    New Project
+                </Button>
             </div>
             
-            {initialProjects.length === 0 ? (
+            <ProjectForm project={selectedProject} onClose={handleFormClose} isOpen={isFormOpen}>
+                {/* This is a button that opens the dialog but we trigger it from other buttons */}
+                <button className="hidden"></button>
+            </ProjectForm>
+
+            {!projects || projects.length === 0 ? (
                 <div className="text-center py-12 px-6">
                     <h3 className="text-xl font-semibold">No Projects Found</h3>
                     <p className="text-muted-foreground mt-2">Start by adding your first project deployment.</p>
@@ -95,7 +127,7 @@ export default function ProjectList({ initialProjects }: { initialProjects: Proj
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {initialProjects.map((project) => (
+                            {projects.map((project) => (
                                 <TableRow key={project.id}>
                                     <TableCell>
                                         <Image src={project.imageUrl} alt={project.title} width={50} height={50} className="rounded-md object-cover" />

@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { addProject, updateProject } from "./actions";
+import { addProjectAction, updateProjectAction } from "./actions";
 
 const projectSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -41,9 +41,10 @@ interface ProjectFormProps {
     project?: Project;
     children: React.ReactNode;
     onClose: () => void;
+    isOpen: boolean;
 }
 
-export function ProjectForm({ project, children, onClose }: ProjectFormProps) {
+export function ProjectForm({ project, children, onClose, isOpen }: ProjectFormProps) {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
     const { register, handleSubmit, control, formState: { errors } } = useForm<ProjectFormData>({
@@ -69,9 +70,10 @@ export function ProjectForm({ project, children, onClose }: ProjectFormProps) {
         });
 
         startTransition(async () => {
+            const action = project?.id ? updateProjectAction : addProjectAction;
             const result = project?.id
-                ? await updateProject(project.id, formData)
-                : await addProject(formData);
+                ? await action(project.id, formData)
+                : await action(formData);
 
             if (result?.error) {
                 toast({
@@ -90,7 +92,7 @@ export function ProjectForm({ project, children, onClose }: ProjectFormProps) {
     };
     
     return (
-        <Dialog onOpenChange={(isOpen) => !isOpen && onClose()}>
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[625px] glass-card">
                 <DialogHeader>

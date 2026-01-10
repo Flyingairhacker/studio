@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { Timestamp } from "firebase/firestore";
 
 export interface Project {
   id: string;
@@ -39,5 +40,5 @@ export interface ContactMessage {
   name: string;
   email: string;
   message: string;
-  createdAt: any; // Firestore timestamp or ISO string
+  sentAt: Timestamp | Date | string; 
 }

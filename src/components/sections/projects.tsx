@@ -4,23 +4,20 @@ import { motion } from "framer-motion";
 import ProjectCard from "../ui/project-card";
 import SectionTitle from "../ui/section-title";
 import type { Project } from "@/lib/types";
-import { useEffect, useState } from "react";
-import { getProjects } from "@/lib/data-access";
+import { useEffect, useState, useMemo } from "react";
 import { Skeleton } from "../ui/skeleton";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection, query, orderBy } from "firebase/firestore";
 
 const Projects = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
+  const firestore = useFirestore();
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      setLoading(true);
-      const fetchedProjects = await getProjects();
-      setProjects(fetchedProjects);
-      setLoading(false);
-    };
-    fetchProjects();
-  }, []);
+  const projectsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, "projects"), orderBy("title", "asc"));
+  }, [firestore]);
+
+  const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
 
   const containerVariants = {
     hidden: {},
@@ -49,7 +46,7 @@ const Projects = () => {
         title="Featured Deployments"
         subtitle="A selection of case studies demonstrating my capabilities in architecture, development, and system integration."
       />
-       {loading ? (
+       {isLoading ? (
           <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
             <Skeleton className="h-[450px] w-full rounded-lg" />
             <Skeleton className="h-[450px] w-full rounded-lg" />
@@ -64,7 +61,7 @@ const Projects = () => {
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
       >
-        {projects.map((project) => (
+        {projects?.map((project) => (
           <motion.div key={project.id} variants={itemVariants}>
             <ProjectCard project={project} />
           </motion.div>

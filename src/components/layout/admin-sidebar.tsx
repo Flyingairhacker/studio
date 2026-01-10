@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Sidebar,
   SidebarHeader,
@@ -12,9 +12,10 @@ import {
   SidebarContent,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Fingerprint, LayoutGrid, Inbox, Palette, LogOut, PanelLeft, Bot } from "lucide-react";
-import { logout } from "@/app/login/actions";
+import { Fingerprint, LayoutGrid, Inbox, Palette, LogOut, Bot } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/firebase";
+import { signOut } from "firebase/auth";
 
 const menuItems = [
   { href: "/admin/projects", label: "Projects", icon: LayoutGrid },
@@ -25,6 +26,15 @@ const menuItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const auth = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+    }
+    router.push('/login');
+  };
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
@@ -60,18 +70,14 @@ export default function AdminSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <form action={logout}>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={{ children: "Logout" }}>
-                <button type="submit" className="w-full">
-                  <LogOut />
-                  <span>Logout</span>
-                </button>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </form>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={handleLogout} tooltip={{ children: "Logout" }}>
+                <LogOut />
+                <span>Logout</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );

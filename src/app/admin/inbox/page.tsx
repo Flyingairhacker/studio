@@ -1,5 +1,6 @@
 import GlassCard from "@/components/ui/glass-card";
 import { MessageList } from "./message-list";
+import { FirebaseClientProvider } from "@/firebase/client-provider";
 
 export default function AdminInboxPage() {
   
@@ -13,7 +14,9 @@ export default function AdminInboxPage() {
         </div>
 
       <GlassCard className="p-0">
-        <MessageList />
+        <FirebaseClientProvider>
+          <MessageList />
+        </FirebaseClientProvider>
       </GlassCard>
     </div>
   );
