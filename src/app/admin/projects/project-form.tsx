@@ -6,6 +6,9 @@ import { z } from "zod";
 import { useTransition } from "react";
 import { useToast } from "@/hooks/use-toast";
 import type { Project } from "@/lib/types";
+import { useFirestore } from "@/firebase";
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { collection, doc, serverTimestamp } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +25,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { addProjectAction, updateProjectAction } from "./actions";
 
 const projectSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -47,6 +49,8 @@ interface ProjectFormProps {
 export function ProjectForm({ project, children, onClose, isOpen }: ProjectFormProps) {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
+    const firestore = useFirestore();
+
     const { register, handleSubmit, control, formState: { errors } } = useForm<ProjectFormData>({
         resolver: zodResolver(projectSchema),
         defaultValues: {
@@ -62,32 +66,46 @@ export function ProjectForm({ project, children, onClose, isOpen }: ProjectFormP
     });
 
     const processSubmit = async (data: ProjectFormData) => {
-        const formData = new FormData();
-        Object.entries(data).forEach(([key, value]) => {
-            if (value !== undefined) {
-                formData.append(key, value as string);
-            }
-        });
+        if (!firestore) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Firestore is not available."
+            });
+            return;
+        }
 
-        startTransition(async () => {
-            const action = project?.id ? updateProjectAction : addProjectAction;
-            const result = project?.id
-                ? await action(project.id, formData)
-                : await action(formData);
+        startTransition(() => {
+            const { tags, ...rest } = data;
+            const projectData = {
+                ...rest,
+                tags: tags.split(',').map(tag => tag.trim()),
+            };
 
-            if (result?.error) {
-                toast({
-                    variant: "destructive",
-                    title: "Error",
-                    description: result.error,
+            if (project?.id) {
+                // Update existing project
+                const projectRef = doc(firestore, "projects", project.id);
+                updateDocumentNonBlocking(projectRef, {
+                    ...projectData,
+                    updatedAt: serverTimestamp(),
                 });
-            } else {
                 toast({
-                    title: `Project ${project?.id ? "Updated" : "Added"}`,
+                    title: "Project Updated",
                     description: "Your project portfolio has been successfully updated."
                 });
-                onClose();
+            } else {
+                // Add new project
+                const projectsCollection = collection(firestore, "projects");
+                addDocumentNonBlocking(projectsCollection, {
+                    ...projectData,
+                    createdAt: serverTimestamp(),
+                });
+                toast({
+                    title: "Project Added",
+                    description: "Your new project has been added to the portfolio."
+                });
             }
+            onClose();
         });
     };
     

@@ -32,10 +32,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { ProjectForm } from "./project-form";
-import { deleteProjectAction } from "./actions";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query, orderBy } from "firebase/firestore";
+import { collection, query, orderBy, doc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 
 export default function ProjectList() {
@@ -63,12 +63,10 @@ export default function ProjectList() {
     };
     
     const handleDelete = async (id: string) => {
-        const result = await deleteProjectAction(id);
-        if (result.error) {
-            toast({ variant: "destructive", title: "Error", description: result.error });
-        } else {
-            toast({ title: "Project Deleted", description: "The project has been removed." });
-        }
+        if (!firestore) return;
+        const projectRef = doc(firestore, "projects", id);
+        deleteDocumentNonBlocking(projectRef);
+        toast({ title: "Project Deleted", description: "The project has been removed." });
     };
     
     const handleFormClose = () => {
