@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTransition } from "react";
@@ -18,7 +18,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogClose
+  DialogClose,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,7 +56,7 @@ export function ProjectForm({ project, children, onClose, isOpen }: ProjectFormP
         defaultValues: {
             title: project?.title || "",
             description: project?.description || "",
-            tags: project?.tags.join(", ") || "",
+            tags: project?.tags?.join(", ") || "",
             systemType: project?.systemType || "Web",
             repoUrl: project?.repoUrl || "",
             liveUrl: project?.liveUrl || "",
@@ -131,17 +132,23 @@ export function ProjectForm({ project, children, onClose, isOpen }: ProjectFormP
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="systemType" className="text-right">System Type</Label>
-                         <Select onValueChange={(value) => control._updateFormState({ ...control._formValues, systemType: value })} defaultValue={project?.systemType || "Web"}>
-                            <SelectTrigger className="col-span-3">
-                                <SelectValue placeholder="Select a system type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Web">Web</SelectItem>
-                                <SelectItem value="Mobile">Mobile</SelectItem>
-                                <SelectItem value="IoT">IoT</SelectItem>
-                                <SelectItem value="Desktop">Desktop</SelectItem>
-                            </SelectContent>
-                        </Select>
+                         <Controller
+                            name="systemType"
+                            control={control}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <SelectTrigger className="col-span-3">
+                                        <SelectValue placeholder="Select a system type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Web">Web</SelectItem>
+                                        <SelectItem value="Mobile">Mobile</SelectItem>
+                                        <SelectItem value="IoT">IoT</SelectItem>
+                                        <SelectItem value="Desktop">Desktop</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            )}
+                         />
                     </div>
                      <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="tags" className="text-right">Tags</Label>

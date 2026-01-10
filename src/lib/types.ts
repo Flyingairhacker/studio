@@ -43,6 +43,7 @@ export interface ContactMessage {
   email: string;
   message: string;
   sentAt: Timestamp | Date | string; 
+  createdAt?: Timestamp | Date | string;
 }
 
 export interface Bio {
