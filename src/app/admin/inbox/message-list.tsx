@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemoFirebase } from "@/firebase/provider";
 import { collection, orderBy, query } from "firebase/firestore";
 import { formatDistanceToNow } from "date-fns";
 import { useCollection, useFirestore } from "@/firebase";
@@ -18,12 +18,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function MessageList() {
     const firestore = useFirestore();
 
-    const messagesQuery = useMemo(() => {
+    const messagesQuery = useMemoFirebase(() => {
         if (!firestore) return null;
         return query(collection(firestore, "contact_messages"), orderBy("sentAt", "desc"));
     }, [firestore]);
 
-    const { data: messages, isLoading } = useCollection<ContactMessage>(messagesQuery as any);
+    const { data: messages, isLoading } = useCollection<ContactMessage>(messagesQuery);
 
     if (isLoading) {
         return (
@@ -51,7 +51,7 @@ export function MessageList() {
                     <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/30 text-left">
                         <div className="flex items-center justify-between w-full">
                             <div className="flex items-center gap-4">
-                                <Badge variant="outline" className="hidden sm:inline-flex">{formatDistanceToNow(new Date(msg.sentAt), { addSuffix: true })}</Badge>
+                                <Badge variant="outline" className="hidden sm:inline-flex">{formatDistanceToNow(new Date(msg.sentAt as any), { addSuffix: true })}</Badge>
                                 <div className="truncate">
                                     <p className="font-semibold truncate">{msg.name}</p>
                                     <p className="text-sm text-muted-foreground truncate">{msg.email}</p>
