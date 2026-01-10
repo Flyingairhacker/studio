@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useMemoFirebase } from "@/firebase/provider";
-import { collection, orderBy, query } from "firebase/firestore";
+import { collection, orderBy, query, Timestamp } from "firebase/firestore";
 import { formatDistanceToNow } from "date-fns";
 import { useCollection, useFirestore } from "@/firebase";
 import type { ContactMessage } from "@/lib/types";
@@ -14,6 +15,13 @@ import {
 } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+
+function toDate(timestamp: Timestamp | Date | string): Date {
+    if (timestamp instanceof Timestamp) {
+        return timestamp.toDate();
+    }
+    return new Date(timestamp);
+}
 
 export function MessageList() {
     const firestore = useFirestore();
@@ -51,7 +59,7 @@ export function MessageList() {
                     <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/30 text-left">
                         <div className="flex items-center justify-between w-full">
                             <div className="flex items-center gap-4">
-                                <Badge variant="outline" className="hidden sm:inline-flex">{formatDistanceToNow(new Date(msg.sentAt as any), { addSuffix: true })}</Badge>
+                                <Badge variant="outline" className="hidden sm:inline-flex">{formatDistanceToNow(toDate(msg.sentAt), { addSuffix: true })}</Badge>
                                 <div className="truncate">
                                     <p className="font-semibold truncate">{msg.name}</p>
                                     <p className="text-sm text-muted-foreground truncate">{msg.email}</p>
