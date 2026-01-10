@@ -136,12 +136,12 @@ export default function TechStackList() {
                                 return (
                                 <TableRow key={tech.id}>
                                     <TableCell>
-                                        {Icon && <Icon className="h-6 w-6" style={{ color: tech.color }}/>}
+                                        {Icon && <Icon className="h-6 w-6" style={{ color: `hsl(${tech.color.split(',')[0]}, ${tech.color.split(',')[1]}, ${tech.color.split(',')[2]})` }}/>}
                                     </TableCell>
                                     <TableCell className="font-medium">{tech.name}</TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2">
-                                            <div className="h-4 w-4 rounded-full border" style={{ backgroundColor: tech.color }} />
+                                            <div className="h-4 w-4 rounded-full border" style={{ backgroundColor: `hsl(${tech.color.split(',')[0]}, ${tech.color.split(',')[1]}, ${tech.color.split(',')[2]})` }} />
                                             <span className="font-mono text-xs">{tech.color}</span>
                                         </div>
                                     </TableCell>
