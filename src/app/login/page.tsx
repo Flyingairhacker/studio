@@ -27,7 +27,7 @@ export default function LoginPage() {
 
   return (
     <div className="font-code flex min-h-screen flex-col items-center justify-center bg-background p-4 pattern-bg">
-      <div className="w-full max-w-lg rounded-lg border border-primary/20 bg-background/50 p-6 shadow-[0_0_20px_theme(colors.primary/0.2)] backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-lg border border-primary/20 bg-background/50 p-6 shadow-[0_0_20px_hsl(var(--primary)/0.2)] backdrop-blur-sm">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-primary text-glow">
             Admin Login
