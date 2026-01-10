@@ -3,8 +3,18 @@
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { firebaseConfig } from '@/firebase/config';
 
-import { db } from "@/lib/firebase";
+// Server-side safe Firebase initialization
+function getDb() {
+    if (getApps().length === 0) {
+        initializeApp(firebaseConfig);
+    }
+    return getFirestore(getApp());
+}
+
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -22,6 +32,7 @@ export async function saveMessage(values: z.infer<typeof formSchema>) {
         };
     }
     
+    const db = getDb();
     if (!db) {
       return { error: "Failed to connect to secure channel. Please try again later." };
     }
