@@ -44,14 +44,14 @@ export default function LoginForm() {
       }
       try {
         await signInWithEmailAndPassword(auth, data.email, data.password);
-        router.push("/admin");
+        router.push("/");
       } catch (e: any) {
         switch (e.code) {
           case 'auth/user-not-found':
             // If user does not exist, create it
             try {
               await createUserWithEmailAndPassword(auth, data.email, data.password);
-              router.push("/admin");
+              router.push("/");
             } catch (creationError: any) {
               setError("Failed to create a new admin account.");
               console.error(creationError);
