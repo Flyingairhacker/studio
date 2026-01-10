@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import type { Project } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -41,9 +42,14 @@ import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 export default function ProjectList() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedProject, setSelectedProject] = useState<Project | undefined>(undefined);
+    const [isClient, setIsClient] = useState(false);
     const { toast } = useToast();
 
     const firestore = useFirestore();
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const projectsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -74,7 +80,7 @@ export default function ProjectList() {
         setSelectedProject(undefined);
     };
     
-    if (isLoading) {
+    if (isLoading && !isClient) {
         return (
              <div className="p-4">
                 <div className="flex items-center justify-between p-4 border-b border-border/50">
@@ -102,10 +108,12 @@ export default function ProjectList() {
                 </Button>
             </div>
             
-            <ProjectForm project={selectedProject} onClose={handleFormClose} isOpen={isFormOpen}>
-                {/* This is a button that opens the dialog but we trigger it from other buttons */}
-                <button className="hidden"></button>
-            </ProjectForm>
+            {isClient && (
+              <ProjectForm project={selectedProject} onClose={handleFormClose} isOpen={isFormOpen}>
+                  {/* This is a button that opens the dialog but we trigger it from other buttons */}
+                  <button className="hidden"></button>
+              </ProjectForm>
+            )}
 
             {!projects || projects.length === 0 ? (
                 <div className="text-center py-12 px-6">
