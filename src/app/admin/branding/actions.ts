@@ -1,3 +1,4 @@
+
 "use server";
 
 import { updateBrandingViaAi, type UpdateBrandingInput } from "@/ai/flows/update-branding-via-ai";
@@ -58,12 +59,19 @@ export async function generateTheme(input: UpdateBrandingInput) {
 
     const theme = {
         background: colors.background ? hexToHsl(colors.background) : null,
+        foreground: colors.foreground ? hexToHsl(colors.foreground) : null,
+        card: colors.card ? hexToHsl(colors.card) : null,
         primary: colors.primary ? hexToHsl(colors.primary) : null,
+        secondary: colors.secondary ? hexToHsl(colors.secondary) : null,
         accent: colors.accent ? hexToHsl(colors.accent) : null,
+        muted: colors.muted ? hexToHsl(colors.muted) : null,
     };
 
-    if (!theme.background || !theme.primary || !theme.accent) {
-        return { error: "AI did not return all required colors (background, primary, accent)." };
+    const requiredColors: (keyof typeof theme)[] = ['background', 'foreground', 'card', 'primary', 'secondary', 'accent', 'muted'];
+    const missingColors = requiredColors.filter(color => !theme[color]);
+
+    if (missingColors.length > 0) {
+        return { error: `AI did not return all required colors. Missing: ${missingColors.join(', ')}.` };
     }
     
     return { theme };

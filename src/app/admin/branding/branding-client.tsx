@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
@@ -24,6 +25,7 @@ const hslToHex = (h: number, s: number, l: number): string => {
 };
 
 const hslStringToObject = (hslString: string) => {
+    if (!hslString) return { h: 0, s: 0, l: 0 };
     const [h, s, l] = hslString.split(" ").map(v => parseInt(v.replace('%', '')));
     return { h, s, l };
 }
@@ -32,12 +34,25 @@ const hslObjectToHex = (hsl: {h: number, s: number, l: number}) => {
     return hslToHex(hsl.h, hsl.s, hsl.l);
 }
 
+type Theme = {
+  background: string;
+  foreground: string;
+  card: string;
+  primary: string;
+  secondary: string;
+  accent: string;
+  muted: string;
+};
 
 export default function BrandingClient() {
-  const [theme, setTheme] = useState({
+  const [theme, setTheme] = useState<Theme>({
     background: "224 41% 3%",
+    foreground: "210 40% 98%",
+    card: "224 71% 4%",
     primary: "192 100% 50%",
-    accent: "256 90% 66%",
+    secondary: "256 90% 66%",
+    accent: "300 100% 50%",
+    muted: "215 28% 17%",
   });
   const [isMounted, setIsMounted] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
@@ -56,18 +71,12 @@ export default function BrandingClient() {
 
   useEffect(() => {
     if (isMounted) {
-      document.documentElement.style.setProperty("--background", theme.background);
-      document.documentElement.style.setProperty("--primary", theme.primary);
-      document.documentElement.style.setProperty("--accent", theme.accent);
-      document.documentElement.style.setProperty("--secondary", theme.accent);
+      Object.entries(theme).forEach(([key, value]) => {
+        document.documentElement.style.setProperty(`--${key}`, value);
+      });
     }
   }, [theme, isMounted]);
 
-  const handleColorChange = (colorName: keyof typeof theme, value: string) => {
-    const hsl = hslStringToObject(value);
-    setTheme((prev) => ({ ...prev, [colorName]: `${hsl.h} ${hsl.s}% ${hsl.l}%` }));
-  };
-  
   const handleHexColorChange = (colorName: keyof typeof theme, hex: string) => {
     const r = parseInt(hex.slice(1, 3), 16),
           g = parseInt(hex.slice(3, 5), 16),
@@ -110,7 +119,7 @@ export default function BrandingClient() {
       if (result.error) {
         setError(result.error);
       } else if (result.theme) {
-        setTheme(result.theme as any);
+        setTheme(result.theme as Theme);
         toast({
           title: "AI Theme Generated",
           description: "The new theme has been applied. Don't forget to save!",
@@ -122,6 +131,19 @@ export default function BrandingClient() {
   if (!isMounted) {
     return null; // Or a loading skeleton
   }
+
+  const renderColorInput = (name: keyof Theme, label: string) => (
+    <div>
+      <Label htmlFor={`${name}-color`}>{label}</Label>
+      <Input
+        id={`${name}-color`}
+        type="color"
+        value={hslObjectToHex(hslStringToObject(theme[name]))}
+        onChange={(e) => handleHexColorChange(name, e.target.value)}
+        className="h-12"
+      />
+    </div>
+  );
 
   return (
     <div className="space-y-8">
@@ -138,37 +160,14 @@ export default function BrandingClient() {
         <h2 className="text-xl font-headline font-semibold border-b pb-2 mb-4 flex items-center gap-2">
             <Palette className="text-primary"/> Color Palette
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <Label htmlFor="background-color">Background</Label>
-            <Input
-              id="background-color"
-              type="color"
-              value={hslObjectToHex(hslStringToObject(theme.background))}
-              onChange={(e) => handleHexColorChange("background", e.target.value)}
-              className="h-12"
-            />
-          </div>
-          <div>
-            <Label htmlFor="primary-color">Primary</Label>
-            <Input
-              id="primary-color"
-              type="color"
-              value={hslObjectToHex(hslStringToObject(theme.primary))}
-              onChange={(e) => handleHexColorChange("primary", e.target.value)}
-              className="h-12"
-            />
-          </div>
-          <div>
-            <Label htmlFor="accent-color">Accent/Secondary</Label>
-            <Input
-              id="accent-color"
-              type="color"
-              value={hslObjectToHex(hslStringToObject(theme.accent))}
-              onChange={(e) => handleHexColorChange("accent", e.target.value)}
-              className="h-12"
-            />
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {renderColorInput("background", "Background")}
+            {renderColorInput("foreground", "Foreground")}
+            {renderColorInput("card", "Card")}
+            {renderColorInput("muted", "Muted")}
+            {renderColorInput("primary", "Primary")}
+            {renderColorInput("secondary", "Secondary")}
+            {renderColorInput("accent", "Accent")}
         </div>
         <div className="mt-6 flex justify-end">
           <Button onClick={saveTheme}>Save Palette</Button>
@@ -181,7 +180,7 @@ export default function BrandingClient() {
         </h2>
         <p className="text-sm text-muted-foreground mb-4">
           Describe the branding you want, and let AI generate a new theme.
-          Provide a prompt like `a dark, moody theme with fiery orange accents`. The AI must return a background, primary and accent color.
+          Provide a prompt like `a dark, moody theme with fiery orange accents`. The AI must return a full palette.
         </p>
         <div className="flex flex-col sm:flex-row gap-2">
           <Input

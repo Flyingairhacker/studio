@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -24,7 +25,7 @@ export type UpdateBrandingInput = z.infer<typeof UpdateBrandingInputSchema>;
 const UpdateBrandingOutputSchema = z.object({
   colorScheme: z
     .string()
-    .describe('Suggested color scheme in CSS variable format.'),
+    .describe('Suggested color scheme in CSS variable format for --background, --foreground, --card, --primary, --secondary, --accent, and --muted.'),
   typography:
     z.string().describe('Suggested typography settings (font families).'),
 });
@@ -44,7 +45,10 @@ const updateBrandingPrompt = ai.definePrompt({
 
   Prompt: {{{prompt}}}
 
-  Provide the color scheme in CSS variable format (e.g., --primary: #00C8FF; --secondary: #8B5CF6;) and the typography settings as font families (e.g., body: Inter, sans-serif; heading: Space Grotesk, sans-serif;). Make sure to return valid CSS.
+  Provide a complete color scheme in CSS variable format. You MUST include values for --background, --foreground, --card, --primary, --secondary, --accent, and --muted.
+  Example: --background: #0A0A0A; --foreground: #F8F8F8; --card: #1A1A1A; --primary: #00C8FF; --secondary: #8B5CF6; --accent: #FF00FF; --muted: #3A3A3A;
+  
+  Also provide typography settings as font families (e.g., body: Inter, sans-serif; heading: Space Grotesk, sans-serif;). Make sure to return valid CSS.
   `,
 });
 
