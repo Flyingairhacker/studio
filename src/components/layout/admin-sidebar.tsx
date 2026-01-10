@@ -47,7 +47,7 @@ export default function AdminSidebar() {
                     <Fingerprint />
                 </Button>
                 <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-                    <span className="font-headline text-lg font-bold">Operator</span>
+                    <span className="font-headline text-lg font-bold">Admin</span>
                     <span className="text-xs text-muted-foreground">Admin Access</span>
                 </div>
             </div>

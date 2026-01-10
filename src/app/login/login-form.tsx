@@ -82,7 +82,7 @@ export default function LoginForm() {
             type="email"
             {...register("email")}
             className="font-code bg-background/50 border-primary/30 focus:border-primary focus:ring-primary/50"
-            placeholder="operator@domain.sec"
+            placeholder="admin@domain.sec"
             disabled={isPending}
           />
            {errors.email && <p className="text-red-500 text-xs px-1">{errors.email.message}</p>}

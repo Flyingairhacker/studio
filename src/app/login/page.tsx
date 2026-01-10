@@ -30,20 +30,20 @@ export default function LoginPage() {
       <div className="w-full max-w-lg rounded-lg border border-primary/20 bg-background/50 p-6 shadow-[0_0_20px_theme(colors.primary/0.2)] backdrop-blur-sm">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-primary text-glow">
-            Operator Login
+            Admin Login
           </h1>
           <Fingerprint className="h-8 w-8 text-primary" />
         </div>
         <div className="space-y-2 text-sm text-muted-foreground">
           <p className="text-yellow-400">
-            &gt; Authentication required. Please provide your operator credentials.
+            &gt; Authentication required. Please provide your admin credentials.
           </p>
         </div>
 
         <LoginForm />
 
         <div className="mt-6 border-t border-primary/20 pt-4 text-center text-xs text-muted-foreground">
-          <p>System Initialized. Awaiting operator input.</p>
+          <p>System Initialized. Awaiting admin input.</p>
           <p>Unauthorized access is monitored and logged.</p>
         </div>
       </div>

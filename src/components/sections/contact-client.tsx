@@ -76,9 +76,9 @@ const ContactClient = () => {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-code text-primary">Operator_Name</FormLabel>
+                    <FormLabel className="font-code text-primary">Your_Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="[Enter your callsign]" {...field} className="bg-background/50 focus:bg-background"/>
+                      <Input placeholder="[Enter your name]" {...field} className="bg-background/50 focus:bg-background"/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -89,9 +89,9 @@ const ContactClient = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-code text-primary">Return_Channel</FormLabel>
+                    <FormLabel className="font-code text-primary">Your_Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="[Secure email address]" {...field} className="bg-background/50 focus:bg-background"/>
+                      <Input placeholder="[Enter your email]" {...field} className="bg-background/50 focus:bg-background"/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -103,10 +103,10 @@ const ContactClient = () => {
               name="message"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-code text-primary">Message_Payload</FormLabel>
+                  <FormLabel className="font-code text-primary">Your_Message</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="[Begin your encrypted message...]"
+                      placeholder="[Begin your message...]"
                       className="min-h-[150px] bg-background/50 focus:bg-background"
                       {...field}
                     />

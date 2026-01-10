@@ -53,7 +53,7 @@ const Header = () => {
         </nav>
         <div className="flex items-center gap-4">
           <Button asChild>
-            <Link href={user ? "/admin" : "/login"}>{user ? "Go to Admin" : "Operator Login"}</Link>
+            <Link href={user ? "/admin" : "/login"}>{user ? "Go to Admin" : "Admin Login"}</Link>
           </Button>
         </div>
       </div>
