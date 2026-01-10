@@ -3,18 +3,17 @@
 import { motion } from "framer-motion";
 import GlassCard from "../ui/glass-card";
 import SectionTitle from "../ui/section-title";
-import { Server, Smartphone, Cpu, Bot, Cloud, Database } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection, query, orderBy } from "firebase/firestore";
+import type { TechStack as TechStackType } from "@/lib/types";
+import { Skeleton } from "../ui/skeleton";
 
-const tech = [
-  { name: 'Flutter', Icon: Smartphone, color: 'hsl(198, 89%, 48%)' },
-  { name: 'Dart', Icon: Cpu, color: 'hsl(200, 95%, 53%)' },
-  { name: 'Firebase', Icon: Database, color: 'hsl(38, 96%, 56%)' },
-  { name: 'IoT Core', Icon: Server, color: 'hsl(135, 62%, 45%)' },
-  { name: 'GenAI', Icon: Bot, color: 'hsl(255, 90%, 66%)' },
-  { name: 'Cloud Functions', Icon: Cloud, color: 'hsl(217, 91%, 60%)' },
-];
+type LucideIconName = keyof typeof LucideIcons;
 
-const TechCard = ({ name, Icon, color }: { name: string; Icon: React.ElementType; color: string }) => {
+const TechCard = ({ name, iconName, color }: { name: string; iconName: string; color: string }) => {
+  const Icon = LucideIcons[iconName as LucideIconName] as React.ElementType || LucideIcons['Code'];
+
   return (
     <motion.div
       whileHover={{ y: -10, scale: 1.05 }}
@@ -42,6 +41,13 @@ const TechCard = ({ name, Icon, color }: { name: string; Icon: React.ElementType
 }
 
 const TechStack = () => {
+    const firestore = useFirestore();
+    const techStacksQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, "tech_stacks"), orderBy("name", "asc"));
+    }, [firestore]);
+
+    const { data: tech, isLoading } = useCollection<TechStackType>(techStacksQuery);
 
     const containerVariants = {
         hidden: {},
@@ -62,6 +68,11 @@ const TechStack = () => {
         title="Core Systems"
         subtitle="A curated selection of technologies I leverage to build robust and scalable digital ecosystems."
       />
+       {isLoading ? (
+        <div className="mt-16 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {[...Array(6)].map((_, i) => <Skeleton key={i} className="aspect-square w-full" />)}
+        </div>
+       ) : (
       <motion.div 
         className="mt-16 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6"
         variants={containerVariants}
@@ -69,12 +80,13 @@ const TechStack = () => {
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
         >
-        {tech.map((t) => (
-          <motion.div key={t.name} variants={itemVariants}>
+        {tech?.map((t) => (
+          <motion.div key={t.id} variants={itemVariants}>
             <TechCard {...t} />
           </motion.div>
         ))}
       </motion.div>
+      )}
     </section>
   );
 };

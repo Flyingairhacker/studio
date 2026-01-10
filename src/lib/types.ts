@@ -15,9 +15,10 @@ export interface Project {
   updatedAt?: Timestamp | Date | string;
 }
 
-export interface Tech {
+export interface TechStack {
+  id: string;
   name: string;
-  Icon: React.ElementType;
+  iconName: string;
   color: string;
 }
 
@@ -34,7 +35,7 @@ export interface PortfolioData {
   bio: string;
   projects: Project[];
   services: Service[];
-  techStack: Tech[];
+  techStack: TechStack[];
 }
 
 export interface ContactMessage {
