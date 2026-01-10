@@ -34,7 +34,7 @@ export default function AdminSidebar() {
     if (auth) {
       await signOut(auth);
     }
-    router.push('/login');
+    router.push('/');
   };
 
   return (

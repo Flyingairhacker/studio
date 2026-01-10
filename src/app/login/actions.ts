@@ -8,5 +8,5 @@ export async function logout() {
         await signOut(auth);
     }
     // Even if auth fails, redirect
-    redirect('/login');
+    redirect('/');
 }
