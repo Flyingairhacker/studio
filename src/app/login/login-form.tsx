@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +19,7 @@ type FormData = z.infer<typeof schema>;
 const DecryptingText = ({ text, onComplete }: { text: string, onComplete: () => void }) => {
   const [decryptedText, setDecryptedText] = useState("");
 
-  useState(() => {
+  useEffect(() => {
     let interval: NodeJS.Timeout;
     let i = 0;
     const chars = "!<>-_\\/[]{}—=+*^?#________";
@@ -39,7 +39,7 @@ const DecryptingText = ({ text, onComplete }: { text: string, onComplete: () => 
     }, 50);
 
     return () => clearInterval(interval);
-  });
+  }, [text, onComplete]);
 
   return <span className="text-primary">{decryptedText}</span>;
 }
