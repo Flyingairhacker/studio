@@ -4,17 +4,35 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
+import { usePathname } from "next/navigation";
+import { getCookie } from "@/lib/cookies";
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
     window.addEventListener("scroll", handleScroll);
+    
+    const sessionCookie = getCookie('session');
+    if (sessionCookie) {
+        try {
+            const session = JSON.parse(sessionCookie);
+            if(session.user === 'admin') {
+                setIsAdmin(true);
+            }
+        } catch (e) {
+            setIsAdmin(false);
+        }
+    }
+
+
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [pathname]);
 
   const navItems = [
     { name: "Core Systems", href: "#tech-stack" },
@@ -51,7 +69,7 @@ const Header = () => {
         </nav>
         <div className="flex items-center gap-4">
           <Button asChild>
-            <Link href="/login">Operator Login</Link>
+            <Link href={isAdmin ? "/admin" : "/login"}>{isAdmin ? "Go to Admin" : "Operator Login"}</Link>
           </Button>
         </div>
       </div>
