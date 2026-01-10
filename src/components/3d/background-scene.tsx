@@ -11,7 +11,7 @@ const BackgroundScene = () => {
 
     // Scene setup
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x06080d, 0.001);
+    scene.fog = new THREE.FogExp2(0x040306, 0.001); // Deeper background color
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 5;
@@ -44,8 +44,8 @@ const BackgroundScene = () => {
     const orbGroup = new THREE.Group();
     const orbGeometry = new THREE.IcosahedronGeometry(1, 0);
     const orbMaterial = new THREE.MeshStandardMaterial({
-      color: 0x8B5CF6,
-      emissive: 0x8B5CF6,
+      color: 0xFF00FF, // Magenta color for the orbs
+      emissive: 0xFF00FF,
       emissiveIntensity: 0.5,
       metalness: 0.7,
       roughness: 0.3,
@@ -77,7 +77,7 @@ const BackgroundScene = () => {
     cyanLight.position.set(0, 0, 0);
     scene.add(cyanLight);
 
-    const purpleLight = new THREE.PointLight(0x8b5cf6, 50, 100, 2);
+    const purpleLight = new THREE.PointLight(0xff00ff, 50, 100, 2); // Magenta light
     purpleLight.position.set(0, 0, 0);
     scene.add(purpleLight);
 
