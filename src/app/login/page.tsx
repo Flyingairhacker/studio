@@ -1,3 +1,5 @@
+"use client";
+
 import { Fingerprint } from "lucide-react";
 import LoginForm from "./login-form";
 
