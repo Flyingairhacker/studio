@@ -7,7 +7,8 @@ import { z } from "zod";
 import { useEffect, useTransition } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, serverTimestamp } from "firebase/firestore";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import type { Bio } from "@/lib/types";
 
 import { Button } from "@/components/ui/button";
@@ -64,7 +65,7 @@ export default function BioForm() {
   }, [bio, reset]);
 
   const processSubmit = async (data: BioFormData) => {
-    if (!firestore) {
+    if (!firestore || !bioRef) {
         toast({
             variant: "destructive",
             title: "Error",
@@ -73,23 +74,17 @@ export default function BioForm() {
         return;
     }
     
-    startTransition(async () => {
-        try {
-            if(bioRef) {
-                await setDoc(bioRef, data, { merge: true });
-                toast({
-                  title: "Bio Updated",
-                  description: "Your public biography has been successfully updated.",
-                });
-                reset(data); // Resets the form's dirty state
-            }
-        } catch (e: any) {
-             toast({
-                variant: "destructive",
-                title: "Error",
-                description: `Failed to update bio: ${e.message}`,
-            });
-        }
+    startTransition(() => {
+        setDocumentNonBlocking(bioRef, {
+            ...data,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        toast({
+            title: "Bio Updated",
+            description: "Your public biography has been successfully updated.",
+        });
+        reset(data); // Resets the form's dirty state
     });
   };
 
