@@ -1,0 +1,118 @@
+/**
+ * This ruleset enforces a security model for a portfolio Content Management System (CMS).
+ *
+ * Core Philosophy:
+ * The security model is designed to be public-read for most content, with writes restricted to an authenticated administrator.
+ * This allows the portfolio website to be browsed by anyone, while ensuring only the site owner can manage projects,
+ * tech stacks, and other site-wide information. A dedicated collection for contact messages is configured to be
+ * write-only for the public, protecting user privacy.
+ *
+ * Data Structure:
+ * The data is organized into flat, top-level collections for simplicity and query performance.
+ * - /projects: Publicly viewable portfolio projects.
+ * - /tech_stacks: Publicly viewable technologies used in projects.
+ * - /branding: Publicly viewable site-wide branding information (colors, fonts).
+ * - /bio: Publicly viewable architect biography.
+ * - /contact_messages: A private "inbox" where anyone can create a message, but no one can read them via the client.
+ *
+ * Key Security Decisions:
+ * - Public Read, Admin Write: Core content collections (`projects`, `tech_stacks`, `branding`, `bio`) are readable by anyone but can only be modified by a signed-in user, who is assumed to be the site administrator.
+ * - Write-Only Inbox: The `contact_messages` collection allows any user (authenticated or not) to create a document, but strictly denies all read, update, and delete operations to prevent data leakage.
+ * - No User Data Collection: There is no `/users/{userId}` collection, as the primary distinction is between the public and a single authenticated administrator.
+ * - Flexible Schemas: In this prototyping phase, rules focus strictly on authorization (who can access what) and do not enforce the specific shape or data types of documents, allowing for rapid iteration of the CMS content.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --------------------------------
+    // Helper Functions
+    // --------------------------------
+
+    /**
+     * Returns true if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // --------------------------------
+    // Collection Rules
+    // --------------------------------
+
+    /**
+     * @description Manages portfolio projects. Allows public read access for all projects, but restricts write operations (create, update, delete) to authenticated administrators.
+     * @path /projects/{projectId}
+     * @allow (get) Any user, signed in or not, can retrieve a single project document.
+     * @deny (create) An unauthenticated user attempts to create a new project document.
+     * @principle Public Read with Admin-Only Writes: Content is visible to the world, but managed by a trusted, authenticated user.
+     */
+    match /projects/{projectId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
+    }
+
+    /**
+     * @description Manages technology stack information. Allows public read access for all tech stacks, but restricts write operations to authenticated administrators.
+     * @path /tech_stacks/{techStackId}
+     * @allow (list) Any user, signed in or not, can list all documents in the tech_stacks collection.
+     * @deny (update) An unauthenticated user attempts to modify an existing tech stack document.
+     * @principle Public Read with Admin-Only Writes: Content is visible to the world, but managed by a trusted, authenticated user.
+     */
+    match /tech_stacks/{techStackId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
+    }
+
+    /**
+     * @description Provides a secure inbox for contact form submissions. Anyone can submit a message, but no one can read, update, or delete messages through the client.
+     * @path /contact_messages/{contactMessageId}
+     * @allow (create) An anonymous website visitor submits a new contact message.
+     * @deny (get) Any user, signed in or not, attempts to read a contact message. This protects sender privacy.
+     * @principle Write-Only Collection (Inbox): This pattern allows data submission from untrusted clients while preventing them from reading any submitted data, including their own.
+     */
+    match /contact_messages/{contactMessageId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if true;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Manages site-wide branding information. Allows public read access, but restricts write operations to authenticated administrators.
+     * @path /branding/{brandingId}
+     * @allow (get) Any user can retrieve the website's branding information.
+     * @deny (delete) An unauthenticated user attempts to delete the branding document.
+     * @principle Public Read with Admin-Only Writes: Content is visible to the world, but managed by a trusted, authenticated user.
+     */
+    match /branding/{brandingId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
+    }
+
+    /**
+     * @description Manages the architect's biography. Allows public read access, but restricts write operations to authenticated administrators.
+     * @path /bio/{bioId}
+     * @allow (get) Any user can retrieve the architect's biography.
+     * @deny (create) An unauthenticated user attempts to create a new bio document.
+     * @principle Public Read with Admin-Only Writes: Content is visible to the world, but managed by a trusted, authenticated user.
+     */
+    match /bio/{bioId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
+    }
+  }
+}

@@ -1,0 +1,299 @@
+{
+  "entities": {
+    "Project": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Project",
+      "type": "object",
+      "description": "Represents a project in the portfolio.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Project entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the project."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the project."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL to the project's image.",
+          "format": "uri"
+        },
+        "systemType": {
+          "type": "string",
+          "description": "The type of system the project is (e.g., Mobile, IoT, Desktop)."
+        },
+        "repoUrl": {
+          "type": "string",
+          "description": "URL to the project's repository.",
+          "format": "uri"
+        },
+        "liveUrl": {
+          "type": "string",
+          "description": "URL to the live project.",
+          "format": "uri"
+        },
+        "techStackIds": {
+          "type": "array",
+          "description": "References to TechStacks. (Relationship: TechStack N:N Project)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "imageUrl",
+        "systemType",
+        "repoUrl",
+        "liveUrl"
+      ]
+    },
+    "TechStack": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TechStack",
+      "type": "object",
+      "description": "Represents a technology used in the projects.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the TechStack entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the technology (e.g., Flutter, Dart, MQTT)."
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "URL to the technology's logo.",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the technology."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "logoUrl",
+        "description"
+      ]
+    },
+    "ContactMessage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ContactMessage",
+      "type": "object",
+      "description": "Represents a message received through the contact form.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ContactMessage entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the person sending the message."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the person sending the message.",
+          "format": "email"
+        },
+        "message": {
+          "type": "string",
+          "description": "The content of the message."
+        },
+        "sentAt": {
+          "type": "string",
+          "description": "The date and time when the message was sent.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "message",
+        "sentAt"
+      ]
+    },
+    "Branding": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Branding",
+      "type": "object",
+      "description": "Represents the branding information for the website.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Branding entity."
+        },
+        "primaryColor": {
+          "type": "string",
+          "description": "The primary color of the website (e.g., Neon Cyan)."
+        },
+        "backgroundColor": {
+          "type": "string",
+          "description": "The background color of the website (e.g., Deep Space)."
+        },
+        "accentColor": {
+          "type": "string",
+          "description": "The accent color of the website (e.g., Neon Purple)."
+        },
+        "bodyFont": {
+          "type": "string",
+          "description": "The font used for the body text (e.g., Inter)."
+        },
+        "headlineFont": {
+          "type": "string",
+          "description": "The font used for headings (e.g., Space Grotesk)."
+        },
+        "codeFont": {
+          "type": "string",
+          "description": "The font used for code snippets (e.g., Fira Code)."
+        }
+      },
+      "required": [
+        "id",
+        "primaryColor",
+        "backgroundColor",
+        "accentColor",
+        "bodyFont",
+        "headlineFont",
+        "codeFont"
+      ]
+    },
+    "Bio": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Bio",
+      "type": "object",
+      "description": "Represents the biography information for the architect.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Bio entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the architect."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the architect (e.g., Flutter & IoT Systems Architect)."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the architect's skills and experience."
+        },
+        "avatarUrl": {
+          "type": "string",
+          "description": "URL to the architect's avatar image.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "title",
+        "description",
+        "avatarUrl"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/projects/{projectId}",
+        "definition": {
+          "entityName": "Project",
+          "schema": {
+            "$ref": "#/backend/entities/Project"
+          },
+          "description": "Stores project data. All documents in this collection share the same access requirements.",
+          "params": [
+            {
+              "name": "projectId",
+              "description": "The unique identifier for the project."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tech_stacks/{techStackId}",
+        "definition": {
+          "entityName": "TechStack",
+          "schema": {
+            "$ref": "#/backend/entities/TechStack"
+          },
+          "description": "Stores technology stack data. All documents in this collection share the same access requirements.",
+          "params": [
+            {
+              "name": "techStackId",
+              "description": "The unique identifier for the tech stack."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/contact_messages/{contactMessageId}",
+        "definition": {
+          "entityName": "ContactMessage",
+          "schema": {
+            "$ref": "#/backend/entities/ContactMessage"
+          },
+          "description": "Stores contact messages received through the contact form. All documents in this collection share the same access requirements.",
+          "params": [
+            {
+              "name": "contactMessageId",
+              "description": "The unique identifier for the contact message."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/branding/{brandingId}",
+        "definition": {
+          "entityName": "Branding",
+          "schema": {
+            "$ref": "#/backend/entities/Branding"
+          },
+          "description": "Stores branding information for the website. There should only be one document here. All documents in this collection share the same access requirements.",
+          "params": [
+            {
+              "name": "brandingId",
+              "description": "The unique identifier for the branding information."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/bio/{bioId}",
+        "definition": {
+          "entityName": "Bio",
+          "schema": {
+            "$ref": "#/backend/entities/Bio"
+          },
+          "description": "Stores biography information for the architect. There should only be one document here. All documents in this collection share the same access requirements.",
+          "params": [
+            {
+              "name": "bioId",
+              "description": "The unique identifier for the bio."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support the Cyber Architect portfolio website's CMS needs, focusing on authorization independence, clarity, and security. The structure uses structural segregation to group data with similar access requirements. It also denormalizes authorization data to avoid `get()` calls in security rules, enabling atomic operations. The structure includes collections for projects, tech stacks, contact messages, branding, and bio information. The design emphasizes flat collections to optimize querying and simplify security rules, as well as enabling secure list operations (QAPs)."
+  }
+}
