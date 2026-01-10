@@ -11,6 +11,8 @@ export interface Project {
   systemType: 'Mobile' | 'IoT' | 'Desktop' | 'Web';
   repoUrl?: string;
   liveUrl?: string;
+  createdAt?: Timestamp | Date | string;
+  updatedAt?: Timestamp | Date | string;
 }
 
 export interface Tech {
