@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal, Eye, EyeOff } from "lucide-react";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { useAuth } from "@/firebase";
 import { useRouter } from "next/navigation";
 
@@ -29,6 +29,10 @@ export default function LoginForm() {
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      email: "admin@domain.com",
+      password: "password",
+    },
   });
 
   const onSubmit = (data: FormData) => {
@@ -44,6 +48,15 @@ export default function LoginForm() {
       } catch (e: any) {
         switch (e.code) {
           case 'auth/user-not-found':
+            // If user does not exist, create it
+            try {
+              await createUserWithEmailAndPassword(auth, data.email, data.password);
+              router.push("/admin");
+            } catch (creationError: any) {
+              setError("Failed to create a new admin account.");
+              console.error(creationError);
+            }
+            break;
           case 'auth/wrong-password':
           case 'auth/invalid-credential':
             setError("Invalid credentials. Please try again.");
