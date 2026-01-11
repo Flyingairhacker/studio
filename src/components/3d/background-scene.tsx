@@ -7,8 +7,8 @@ import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 
 interface BrandingData {
-  weather: 'none' | 'rain' | 'snow' | 'fog';
-  terrain: 'none' | 'city' | 'hills' | 'beach';
+  weather: 'none' | 'rain' | 'snow' | 'fog' | 'storm' | 'sunny' | 'dusk' | 'night';
+  terrain: 'none' | 'city' | 'hills' | 'beach' | 'forest' | 'desert' | 'mountains';
 }
 
 const BackgroundScene = () => {
@@ -16,6 +16,8 @@ const BackgroundScene = () => {
   const sceneRef = useRef<THREE.Scene | null>(null);
   const weatherParticlesRef = useRef<THREE.Points | null>(null);
   const terrainGroupRef = useRef<THREE.Group | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
 
   const firestore = useFirestore();
   const brandingRef = useMemoFirebase(() => (firestore ? doc(firestore, "branding", "live-branding") : null), [firestore]);
@@ -34,10 +36,13 @@ const BackgroundScene = () => {
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 5;
+    cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    rendererRef.current = renderer;
+
     if (mountRef.current.children.length === 0) {
       mountRef.current.appendChild(renderer.domElement);
     }
@@ -169,22 +174,40 @@ const BackgroundScene = () => {
   // Effect to update weather
   useEffect(() => {
     const scene = sceneRef.current;
-    if (!scene) return;
+    if (!scene || !rendererRef.current) return;
     
+    // Reset background
+    rendererRef.current.setClearColor(0x000000, 0);
+
     if (scene.fog) {
         (scene.fog as THREE.FogExp2).density = weather === 'fog' ? 0.015 : 0.001;
     }
+    
+    // Time of day
+    if (weather === 'sunny') {
+        rendererRef.current.setClearColor(0x87CEEB, 1);
+        scene.fog.color.set(0x87CEEB);
+    } else if (weather === 'dusk') {
+        rendererRef.current.setClearColor(0x23192d, 1);
+        scene.fog.color.set(0x23192d);
+    } else {
+        scene.fog.color.set(0x040306);
+    }
+
 
     if (weatherParticlesRef.current) {
-        if (weather === 'none') {
+        if (weather === 'none' || weather === 'sunny' || weather === 'dusk' || weather === 'night') {
             weatherParticlesRef.current.visible = false;
             return;
         }
 
         weatherParticlesRef.current.visible = true;
-        const count = weather === 'rain' ? 15000 : 5000;
-        const size = weather === 'rain' ? 0.08 : 0.15;
-        const color = weather === 'rain' ? 0x00c8ff : 0xffffff;
+        let count = 5000;
+        if(weather === 'rain') count = 15000;
+        if(weather === 'storm') count = 25000;
+
+        const size = weather === 'rain' || weather === 'storm' ? 0.08 : 0.15;
+        const color = weather === 'rain' || weather === 'storm' ? 0x00c8ff : 0xffffff;
         
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(count * 3);
@@ -194,7 +217,10 @@ const BackgroundScene = () => {
             positions[i * 3] = (Math.random() - 0.5) * 150;
             positions[i * 3 + 1] = Math.random() * 100 - 50;
             positions[i * 3 + 2] = (Math.random() - 0.5) * 150;
-            velocities[i] = weather === 'rain' ? Math.random() * 0.8 + 0.4 : Math.random() * 0.1 + 0.05;
+            let speed = Math.random() * 0.1 + 0.05;
+            if(weather === 'rain') speed = Math.random() * 0.8 + 0.4;
+            if(weather === 'storm') speed = Math.random() * 1.5 + 0.8;
+            velocities[i] = speed;
         }
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         geometry.userData.velocities = velocities;
@@ -237,7 +263,7 @@ const BackgroundScene = () => {
             const building = new THREE.Mesh(boxGeo, material);
             building.position.set(
               (Math.random() - 0.5) * 100,
-              Math.random() * 10,
+              0,
               (Math.random() - 0.5) * 200 - 50
             );
             building.scale.set(
@@ -250,27 +276,62 @@ const BackgroundScene = () => {
           }
           break;
         case 'hills':
-            material = new THREE.MeshStandardMaterial({ color: 0x228B22, roughness: 0.9, metalness: 0.1, flatShading: true });
+        case 'mountains':
+        case 'forest':
+            const color = terrain === 'forest' ? 0x228B22 : 0x696969;
+            material = new THREE.MeshStandardMaterial({ color, roughness: 0.9, metalness: 0.1, flatShading: true });
             const planeGeo = new THREE.PlaneGeometry(200, 200, 50, 50);
             const position = planeGeo.attributes.position;
+            const peakHeight = terrain === 'mountains' ? 25 : 10;
             for (let i = 0; i < position.count; i++) {
                 const x = position.getX(i);
                 const y = position.getY(i);
-                position.setZ(i, Math.sin(x/10) * Math.cos(y/10) * 10);
+                const noise = Math.sin(x/15) * Math.cos(y/15) * peakHeight;
+                position.setZ(i, noise);
             }
             planeGeo.computeVertexNormals();
-            const hills = new THREE.Mesh(planeGeo, material);
-            hills.rotation.x = -Math.PI / 2;
-            hills.position.y = -10;
-            terrainGroupRef.current.add(hills);
+            const ground = new THREE.Mesh(planeGeo, material);
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -10;
+            terrainGroupRef.current.add(ground);
+            
+            if (terrain === 'forest') {
+                const treeGeo = new THREE.ConeGeometry(0.5, 3, 8);
+                const treeMat = new THREE.MeshStandardMaterial({ color: 0x006400 });
+                for(let i=0; i<200; i++){
+                    const tree = new THREE.Mesh(treeGeo, treeMat);
+                    const x = (Math.random() - 0.5) * 200;
+                    const z = (Math.random() - 0.5) * 200;
+                    const y = ground.geometry.index ? 0 : -8.5; // simple placement
+                    tree.position.set(x, y, z);
+                    terrainGroupRef.current.add(tree);
+                }
+            }
             break;
         case 'beach':
-            material = new THREE.MeshStandardMaterial({ color: 0x6083c2, transparent: true, opacity: 0.7 });
-            const waterGeo = new THREE.PlaneGeometry(200, 200, 100, 100);
-            const water = new THREE.Mesh(waterGeo, material);
-            water.rotation.x = -Math.PI / 2;
-            water.position.y = -9.5;
-            terrainGroupRef.current.add(water);
+        case 'desert':
+             const groundColor = terrain === 'beach' ? 0xF0E68C : 0xC2B280;
+             const waterColor = terrain === 'beach' ? 0x6083c2 : 0x000000;
+             material = new THREE.MeshStandardMaterial({ color: waterColor, transparent: true, opacity: 0.7 });
+             const waterGeo = new THREE.PlaneGeometry(200, 200, 1, 1);
+             const water = new THREE.Mesh(waterGeo, material);
+             water.rotation.x = -Math.PI / 2;
+             water.position.y = -9.5;
+             terrainGroupRef.current.add(water);
+
+             const groundMat = new THREE.MeshStandardMaterial({color: groundColor, roughness: 1, metalness: 0});
+             const groundPlane = new THREE.PlaneGeometry(200,100,50,50);
+             const groundPos = groundPlane.attributes.position;
+             for (let i = 0; i < groundPos.count; i++) {
+                const x = groundPos.getX(i);
+                const y = groundPos.getY(i);
+                groundPos.setZ(i, Math.sin(x/5) * Math.sin(y/5) * 2);
+            }
+             const sand = new THREE.Mesh(groundPlane, groundMat);
+             sand.rotation.x = -Math.PI / 2;
+             sand.position.y = -9;
+             sand.position.z = -50;
+             terrainGroupRef.current.add(sand);
             break;
         case 'none':
         default:

@@ -51,8 +51,8 @@ type Theme = {
 
 type BrandingData = {
   theme: Theme;
-  weather: 'none' | 'rain' | 'snow' | 'fog';
-  terrain: 'none' | 'city' | 'hills' | 'beach';
+  weather: 'none' | 'rain' | 'snow' | 'fog' | 'storm' | 'sunny' | 'dusk' | 'night';
+  terrain: 'none' | 'city' | 'hills' | 'beach' | 'forest' | 'desert' | 'mountains';
 }
 
 export default function BrandingClient() {
@@ -289,6 +289,10 @@ export default function BrandingClient() {
                         <SelectItem value="rain">Rain</SelectItem>
                         <SelectItem value="snow">Snow</SelectItem>
                         <SelectItem value="fog">Fog</SelectItem>
+                        <SelectItem value="storm">Storm</SelectItem>
+                        <SelectItem value="sunny">Sunny</SelectItem>
+                        <SelectItem value="dusk">Dusk</SelectItem>
+                        <SelectItem value="night">Night</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -302,7 +306,10 @@ export default function BrandingClient() {
                         <SelectItem value="none">None</SelectItem>
                         <SelectItem value="city">City</SelectItem>
                         <SelectItem value="hills">Hills</SelectItem>
+                        <SelectItem value="mountains">Mountains</SelectItem>
+                        <SelectItem value="forest">Forest</SelectItem>
                         <SelectItem value="beach">Beach</SelectItem>
+                        <SelectItem value="desert">Desert</SelectItem>
                     </SelectContent>
                 </Select>
             </div>

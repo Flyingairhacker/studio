@@ -148,12 +148,12 @@
         },
         "weather": {
           "type": "string",
-          "enum": ["none", "rain", "snow", "fog"],
+          "enum": ["none", "rain", "snow", "fog", "storm", "sunny", "dusk", "night"],
           "description": "The default weather for the 3D background scene."
         },
         "terrain": {
           "type": "string",
-          "enum": ["none", "city", "hills", "beach"],
+          "enum": ["none", "city", "hills", "beach", "forest", "desert", "mountains"],
           "description": "The default terrain for the 3D background scene."
         }
       }
