@@ -16,6 +16,7 @@ const BackgroundScene = () => {
   const sceneRef = useRef<THREE.Scene | null>(null);
   const weatherParticlesRef = useRef<THREE.Points | null>(null);
   const terrainGroupRef = useRef<THREE.Group | null>(null);
+  const vehiclesGroupRef = useRef<THREE.Group | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
 
@@ -71,6 +72,9 @@ const BackgroundScene = () => {
 
     terrainGroupRef.current = new THREE.Group();
     scene.add(terrainGroupRef.current);
+
+    vehiclesGroupRef.current = new THREE.Group();
+    scene.add(vehiclesGroupRef.current);
 
     // Cyber Grid Floor
     const grid = new THREE.GridHelper(200, 100, 0x00C8FF, 0x00C8FF);
@@ -132,6 +136,18 @@ const BackgroundScene = () => {
         if(terrainGroupRef.current.position.z > 50) terrainGroupRef.current.position.z = -150;
       }
 
+      // Animate vehicles
+      if (vehiclesGroupRef.current) {
+          vehiclesGroupRef.current.children.forEach((vehicle, i) => {
+              const speed = vehicle.userData.speed || 0.1;
+              vehicle.position.z += speed;
+              if (vehicle.position.z > camera.position.z) {
+                  vehicle.position.z = -200;
+                  vehicle.position.x = (Math.random() - 0.5) * 100;
+              }
+          });
+      }
+
 
       // Update lights position based on mouse
       const cameraOffset = new THREE.Vector3(mouse.x * 5, mouse.y * 5, camera.position.z + 2);
@@ -158,7 +174,7 @@ const BackgroundScene = () => {
                 object.geometry.dispose();
                 if (Array.isArray(object.material)) {
                     object.material.forEach(material => material.dispose());
-                } else {
+                } else if(object.material) {
                     object.material.dispose();
                 }
             }
@@ -173,25 +189,25 @@ const BackgroundScene = () => {
 
   // Effect to update weather
   useEffect(() => {
-    const scene = sceneRef.current;
-    if (!scene || !rendererRef.current) return;
+    const currentScene = sceneRef.current;
+    const currentRenderer = rendererRef.current;
+    if (!currentScene || !currentRenderer) return;
     
-    // Reset background
-    rendererRef.current.setClearColor(0x000000, 0);
+    currentRenderer.setClearColor(0x000000, 0);
 
-    if (scene.fog) {
-        (scene.fog as THREE.FogExp2).density = weather === 'fog' ? 0.015 : 0.001;
+    if (currentScene.fog) {
+        (currentScene.fog as THREE.FogExp2).density = weather === 'fog' ? 0.015 : 0.001;
     }
     
     // Time of day
     if (weather === 'sunny') {
-        rendererRef.current.setClearColor(0x87CEEB, 1);
-        scene.fog.color.set(0x87CEEB);
+        currentRenderer.setClearColor(0x87CEEB, 1);
+        currentScene.fog.color.set(0x87CEEB);
     } else if (weather === 'dusk') {
-        rendererRef.current.setClearColor(0x23192d, 1);
-        scene.fog.color.set(0x23192d);
+        currentRenderer.setClearColor(0x23192d, 1);
+        currentScene.fog.color.set(0x23192d);
     } else {
-        scene.fog.color.set(0x040306);
+        currentScene.fog.color.set(0x040306);
     }
 
 
@@ -244,100 +260,145 @@ const BackgroundScene = () => {
   // Effect to update terrain
   useEffect(() => {
     if (terrainGroupRef.current) {
-      // Clear old terrain
       while (terrainGroupRef.current.children.length > 0) {
         const obj = terrainGroupRef.current.children[0];
         terrainGroupRef.current.remove(obj);
         if (obj instanceof THREE.Mesh) {
             obj.geometry.dispose();
-            (obj.material as THREE.Material).dispose();
+            if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+            else obj.material.dispose();
         }
       }
+    }
+     if (vehiclesGroupRef.current) {
+        while (vehiclesGroupRef.current.children.length > 0) {
+            const obj = vehiclesGroupRef.current.children[0];
+            vehiclesGroupRef.current.remove(obj);
+            if (obj instanceof THREE.Mesh) {
+                obj.geometry.dispose();
+                (obj.material as THREE.Material).dispose();
+            }
+        }
+    }
 
-      let material: THREE.Material;
-      switch (terrain) {
-        case 'city':
-          material = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.8, metalness: 0.2 });
-          const boxGeo = new THREE.BoxGeometry(1, 1, 1);
-          for (let i = 0; i < 100; i++) {
-            const building = new THREE.Mesh(boxGeo, material);
-            building.position.set(
-              (Math.random() - 0.5) * 100,
-              0,
-              (Math.random() - 0.5) * 200 - 50
+    let material: THREE.Material;
+    switch (terrain) {
+      case 'city':
+        const buildingMaterial = new THREE.MeshLambertMaterial({ color: 0x111111 });
+        const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+        for (let i = 0; i < 300; i++) {
+          const building = new THREE.Mesh(boxGeo, buildingMaterial);
+          building.position.set(
+            (Math.random() - 0.5) * 150,
+            0,
+            (Math.random() - 0.5) * 300 - 100
+          );
+          building.scale.set(
+              Math.random() * 4 + 2,
+              Math.random() * 40 + 10,
+              Math.random() * 4 + 2
+          );
+          building.position.y = building.scale.y / 2 - 10;
+          terrainGroupRef.current?.add(building);
+        }
+        
+        // Add vehicles
+        const vehicleGeo = new THREE.BoxGeometry(0.5, 0.2, 1);
+        for (let i = 0; i < 100; i++) {
+            const vehicleMat = new THREE.MeshBasicMaterial({ color: Math.random() > 0.5 ? 0x00c8ff : 0xff00ff });
+            const vehicle = new THREE.Mesh(vehicleGeo, vehicleMat);
+            vehicle.position.set(
+                (Math.random() - 0.5) * 100,
+                -9.5,
+                (Math.random() - 1) * 200
             );
-            building.scale.set(
-                Math.random() * 3 + 1,
-                Math.random() * 20 + 5,
-                Math.random() * 3 + 1
+            vehicle.userData.speed = Math.random() * 0.2 + 0.1;
+            vehiclesGroupRef.current?.add(vehicle);
+        }
+
+        // Add Tron bike
+        const bikeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true });
+        const bike = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.3, 2), bikeMat);
+        bike.position.set(0, -9.4, -20);
+        bike.userData.speed = 0.5;
+        vehiclesGroupRef.current?.add(bike);
+
+        // Add people
+        const personGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.5, 8);
+        const personMat = new THREE.MeshBasicMaterial({ color: 0xcccccc });
+        for (let i = 0; i < 500; i++) {
+            const person = new THREE.Mesh(personGeo, personMat);
+            person.position.set(
+                 (Math.random() - 0.5) * 150,
+                -9.75,
+                (Math.random() - 0.5) * 300 - 100
             );
-            building.position.y = building.scale.y / 2 - 10;
-            terrainGroupRef.current.add(building);
+            terrainGroupRef.current?.add(person);
+        }
+
+        break;
+      case 'hills':
+      case 'mountains':
+      case 'forest':
+          const color = terrain === 'forest' ? 0x228B22 : 0x696969;
+          material = new THREE.MeshStandardMaterial({ color, roughness: 0.9, metalness: 0.1, flatShading: true });
+          const planeGeo = new THREE.PlaneGeometry(200, 200, 50, 50);
+          const position = planeGeo.attributes.position;
+          const peakHeight = terrain === 'mountains' ? 25 : 10;
+          for (let i = 0; i < position.count; i++) {
+              const x = position.getX(i);
+              const y = position.getY(i);
+              const noise = Math.sin(x/15) * Math.cos(y/15) * peakHeight;
+              position.setZ(i, noise);
+          }
+          planeGeo.computeVertexNormals();
+          const ground = new THREE.Mesh(planeGeo, material);
+          ground.rotation.x = -Math.PI / 2;
+          ground.position.y = -10;
+          terrainGroupRef.current?.add(ground);
+          
+          if (terrain === 'forest') {
+              const treeGeo = new THREE.ConeGeometry(0.5, 3, 8);
+              const treeMat = new THREE.MeshStandardMaterial({ color: 0x006400 });
+              for(let i=0; i<200; i++){
+                  const tree = new THREE.Mesh(treeGeo, treeMat);
+                  const x = (Math.random() - 0.5) * 200;
+                  const z = (Math.random() - 0.5) * 200;
+                  const y = -8.5; 
+                  tree.position.set(x, y, z);
+                  terrainGroupRef.current?.add(tree);
+              }
           }
           break;
-        case 'hills':
-        case 'mountains':
-        case 'forest':
-            const color = terrain === 'forest' ? 0x228B22 : 0x696969;
-            material = new THREE.MeshStandardMaterial({ color, roughness: 0.9, metalness: 0.1, flatShading: true });
-            const planeGeo = new THREE.PlaneGeometry(200, 200, 50, 50);
-            const position = planeGeo.attributes.position;
-            const peakHeight = terrain === 'mountains' ? 25 : 10;
-            for (let i = 0; i < position.count; i++) {
-                const x = position.getX(i);
-                const y = position.getY(i);
-                const noise = Math.sin(x/15) * Math.cos(y/15) * peakHeight;
-                position.setZ(i, noise);
-            }
-            planeGeo.computeVertexNormals();
-            const ground = new THREE.Mesh(planeGeo, material);
-            ground.rotation.x = -Math.PI / 2;
-            ground.position.y = -10;
-            terrainGroupRef.current.add(ground);
-            
-            if (terrain === 'forest') {
-                const treeGeo = new THREE.ConeGeometry(0.5, 3, 8);
-                const treeMat = new THREE.MeshStandardMaterial({ color: 0x006400 });
-                for(let i=0; i<200; i++){
-                    const tree = new THREE.Mesh(treeGeo, treeMat);
-                    const x = (Math.random() - 0.5) * 200;
-                    const z = (Math.random() - 0.5) * 200;
-                    const y = ground.geometry.index ? 0 : -8.5; // simple placement
-                    tree.position.set(x, y, z);
-                    terrainGroupRef.current.add(tree);
-                }
-            }
-            break;
-        case 'beach':
-        case 'desert':
-             const groundColor = terrain === 'beach' ? 0xF0E68C : 0xC2B280;
-             const waterColor = terrain === 'beach' ? 0x6083c2 : 0x000000;
-             material = new THREE.MeshStandardMaterial({ color: waterColor, transparent: true, opacity: 0.7 });
-             const waterGeo = new THREE.PlaneGeometry(200, 200, 1, 1);
-             const water = new THREE.Mesh(waterGeo, material);
-             water.rotation.x = -Math.PI / 2;
-             water.position.y = -9.5;
-             terrainGroupRef.current.add(water);
+      case 'beach':
+      case 'desert':
+            const groundColor = terrain === 'beach' ? 0xF0E68C : 0xC2B280;
+            const waterColor = terrain === 'beach' ? 0x6083c2 : 0x000000;
+            material = new THREE.MeshStandardMaterial({ color: waterColor, transparent: true, opacity: 0.7 });
+            const waterGeo = new THREE.PlaneGeometry(200, 200, 1, 1);
+            const water = new THREE.Mesh(waterGeo, material);
+            water.rotation.x = -Math.PI / 2;
+            water.position.y = -9.5;
+            terrainGroupRef.current?.add(water);
 
-             const groundMat = new THREE.MeshStandardMaterial({color: groundColor, roughness: 1, metalness: 0});
-             const groundPlane = new THREE.PlaneGeometry(200,100,50,50);
-             const groundPos = groundPlane.attributes.position;
-             for (let i = 0; i < groundPos.count; i++) {
-                const x = groundPos.getX(i);
-                const y = groundPos.getY(i);
-                groundPos.setZ(i, Math.sin(x/5) * Math.sin(y/5) * 2);
-            }
-             const sand = new THREE.Mesh(groundPlane, groundMat);
-             sand.rotation.x = -Math.PI / 2;
-             sand.position.y = -9;
-             sand.position.z = -50;
-             terrainGroupRef.current.add(sand);
-            break;
-        case 'none':
-        default:
-          // Do nothing, leave it empty
+            const groundMat = new THREE.MeshStandardMaterial({color: groundColor, roughness: 1, metalness: 0});
+            const groundPlane = new THREE.PlaneGeometry(200,100,50,50);
+            const groundPos = groundPlane.attributes.position;
+            for (let i = 0; i < groundPos.count; i++) {
+              const x = groundPos.getX(i);
+              const y = groundPos.getY(i);
+              groundPos.setZ(i, Math.sin(x/5) * Math.sin(y/5) * 2);
+          }
+            const sand = new THREE.Mesh(groundPlane, groundMat);
+            sand.rotation.x = -Math.PI / 2;
+            sand.position.y = -9;
+            sand.position.z = -50;
+            terrainGroupRef.current?.add(sand);
           break;
-      }
+      case 'none':
+      default:
+        // Do nothing, leave it empty
+        break;
     }
   }, [terrain]);
 
