@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/layout/theme-provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { ProgressBar } from '@/components/ui/progress-bar';
 
 export const metadata: Metadata = {
   title: 'Cyber Architect | Flutter & IoT Systems Architect',
@@ -31,6 +32,7 @@ export default function RootLayout({
         <FirebaseClientProvider>
           <ThemeProvider>
             {children}
+            <ProgressBar />
           </ThemeProvider>
         </FirebaseClientProvider>
         <Toaster />
