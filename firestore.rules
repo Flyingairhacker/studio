@@ -121,7 +121,7 @@ service cloud.firestore {
      */
      match /blog_posts/{postId} {
         allow get: if resource.data.isPublished == true || isSignedIn();
-        allow list: if isSignedIn(); // Admin can list all posts (drafts and published)
+        allow list: if isSignedIn();
         allow create, update, delete: if isSignedIn();
      }
   }
