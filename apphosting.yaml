@@ -1,0 +1,30 @@
+
+run:
+  build: npm run build
+  start: npm start
+env:
+  - variable: FIREBASE_APP_ID
+    value: __FIREBASE_APP_ID__
+  - variable: FIREBASE_API_KEY
+    value: __FIREBASE_API_KEY__
+  - variable: FIREBASE_AUTH_DOMAIN
+    value: __FIREBASE_AUTH_DOMAIN__
+  - variable: FIREBASE_PROJECT_ID
+    value: __FIREBASE_PROJECT_ID__
+  - variable: FIREBASE_STORAGE_BUCKET
+    value: __FIREBASE_STORAGE_BUCKET__
+  - variable: FIREBASE_MESSAGING_SENDER_ID
+    value: __FIREBASE_MESSAGING_SENDER_ID__
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: __FIREBASE_APP_ID__
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: __FIREBASE_API_KEY__
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: __FIREBASE_AUTH_DOMAIN__
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: __FIREBASE_PROJECT_ID__
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: __FIREBASE_STORAGE_BUCKET__
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: __FIREBASE_MESSAGING_SENDER_ID__
+    
