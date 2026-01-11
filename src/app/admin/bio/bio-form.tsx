@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useEffect, useTransition } from "react";
@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 
 const bioSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -26,6 +27,7 @@ const bioSchema = z.object({
   contactTitle: z.string().optional(),
   contactSubtitle: z.string().optional(),
   modelUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
+  showGamesSection: z.boolean().optional(),
 });
 
 type BioFormData = z.infer<typeof bioSchema>;
@@ -47,6 +49,7 @@ export default function BioForm() {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isDirty },
   } = useForm<BioFormData>({
     resolver: zodResolver(bioSchema),
@@ -62,6 +65,7 @@ export default function BioForm() {
         contactTitle: bio.contactTitle || "Request Intel",
         contactSubtitle: bio.contactSubtitle || "Open a secure channel for inquiries, collaborations, or to discuss a project. All transmissions are monitored.",
         modelUrl: bio.modelUrl || "",
+        showGamesSection: bio.showGamesSection || false,
       });
     }
   }, [bio, reset]);
@@ -171,6 +175,35 @@ export default function BioForm() {
             <Textarea id="contactSubtitle" {...register("contactSubtitle")} placeholder="A brief intro to the contact section." className="min-h-[4rem]" />
             {errors.contactSubtitle && <p className="text-sm text-destructive">{errors.contactSubtitle.message}</p>}
         </div>
+      </div>
+      
+      <Separator />
+
+       <div>
+        <h3 className="text-lg font-medium">Homepage Sections</h3>
+        <p className="text-sm text-muted-foreground">Control the visibility of optional sections on your main page.</p>
+      </div>
+       <div className="space-y-4">
+          <Controller
+              name="showGamesSection"
+              control={control}
+              render={({ field }) => (
+                <div className="flex items-center space-x-4 rounded-lg border p-4">
+                    <div className="flex-1 space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                            Show Training Simulations
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                            Display the "Sequence Breaker" game section on the homepage.
+                        </p>
+                    </div>
+                    <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                    />
+                </div>
+              )}
+            />
       </div>
 
       <div className="flex justify-end">

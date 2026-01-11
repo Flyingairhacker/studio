@@ -5,6 +5,7 @@ import Header from '@/components/sections/header';
 import Hero from '@/components/sections/hero';
 import Projects from '@/components/sections/projects';
 import TechStack from '@/components/sections/tech-stack';
+import GamesSection from '@/components/sections/games';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export default function Home() {
@@ -17,6 +18,7 @@ export default function Home() {
             <Hero />
             <TechStack />
             <Projects />
+            <GamesSection />
             <ContactSection />
           </main>
           <Footer />

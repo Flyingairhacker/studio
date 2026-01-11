@@ -56,4 +56,5 @@ export interface Bio {
   contactTitle?: string;
   contactSubtitle?: string;
   modelUrl?: string;
+  showGamesSection?: boolean;
 }
