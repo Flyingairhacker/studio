@@ -207,7 +207,7 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
                                             className="col-span-3 justify-between"
                                         >
                                             {field.value
-                                                ? iconNames.find((name) => name.toLowerCase() === field.value.toLowerCase())
+                                                ? iconNames.find((name) => name === field.value)
                                                 : "Select icon..."}
                                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                         </Button>
@@ -233,7 +233,7 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
                                                             <Check
                                                                 className={cn(
                                                                     "mr-2 h-4 w-4",
-                                                                    field.value && field.value.toLowerCase() === name.toLowerCase() ? "opacity-100" : "opacity-0"
+                                                                    field.value === name ? "opacity-100" : "opacity-0"
                                                                 )}
                                                             />
                                                             {name}
