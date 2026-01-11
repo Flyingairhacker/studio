@@ -6,6 +6,7 @@ import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import type { Bio } from "@/lib/types";
 import { doc } from "firebase/firestore";
 import { Skeleton } from "../ui/skeleton";
+import ModelViewer from "../3d/model-viewer";
 
 const AnimatedText = ({ text }: { text: string }) => {
   return (
@@ -73,9 +74,11 @@ const Hero = () => {
         </div>
         <div className="relative h-80 md:h-[500px] w-full">
             <div className="w-full h-full glass-card p-4">
-                <div className="w-full h-full border border-dashed border-foreground/20 rounded-md flex items-center justify-center">
-                    <p className="text-muted-foreground font-code">[ Interactive 3D Model Placeholder ]</p>
-                </div>
+                {isLoading ? (
+                  <Skeleton className="w-full h-full" />
+                ) : (
+                  <ModelViewer modelUrl={bio?.modelUrl ?? "https://sketchfab.com/models/0c74ca18fa6a4d05be9fe6ffa2206db8/embed"} />
+                )}
             </div>
         </div>
       </div>

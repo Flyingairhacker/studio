@@ -25,6 +25,7 @@ const bioSchema = z.object({
   avatarUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
   contactTitle: z.string().optional(),
   contactSubtitle: z.string().optional(),
+  modelUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
 });
 
 type BioFormData = z.infer<typeof bioSchema>;
@@ -60,6 +61,7 @@ export default function BioForm() {
         avatarUrl: bio.avatarUrl || "",
         contactTitle: bio.contactTitle || "Request Intel",
         contactSubtitle: bio.contactSubtitle || "Open a secure channel for inquiries, collaborations, or to discuss a project. All transmissions are monitored.",
+        modelUrl: bio.modelUrl || "",
       });
     }
   }, [bio, reset]);
@@ -107,6 +109,10 @@ export default function BioForm() {
             <Skeleton className="h-4 w-20" />
             <Skeleton className="h-10 w-full" />
         </div>
+        <div className="space-y-2">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-10 w-full" />
+        </div>
         <div className="flex justify-end">
             <Skeleton className="h-10 w-24" />
         </div>
@@ -140,6 +146,11 @@ export default function BioForm() {
             <Label htmlFor="avatarUrl">Avatar URL</Label>
             <Input id="avatarUrl" {...register("avatarUrl")} placeholder="https://example.com/avatar.png" />
             {errors.avatarUrl && <p className="text-sm text-destructive">{errors.avatarUrl.message}</p>}
+        </div>
+        <div className="space-y-2">
+            <Label htmlFor="modelUrl">Sketchfab Embed URL</Label>
+            <Input id="modelUrl" {...register("modelUrl")} placeholder="https://sketchfab.com/models/.../embed" />
+            {errors.modelUrl && <p className="text-sm text-destructive">{errors.modelUrl.message}</p>}
         </div>
       </div>
 

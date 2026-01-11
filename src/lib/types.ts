@@ -55,4 +55,5 @@ export interface Bio {
     avatarUrl: string;
     contactTitle?: string;
     contactSubtitle?: string;
+    modelUrl?: string;
 }
