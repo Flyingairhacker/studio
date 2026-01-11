@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useEffect } from 'react';
@@ -11,7 +12,7 @@ const BackgroundScene = () => {
 
     // Scene setup
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x040306, 0.001); // Deeper background color
+    scene.fog = new THREE.FogExp2(0x040306, 0.001);
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 5;
@@ -44,7 +45,7 @@ const BackgroundScene = () => {
     const orbGroup = new THREE.Group();
     const orbGeometry = new THREE.IcosahedronGeometry(1, 0);
     const orbMaterial = new THREE.MeshStandardMaterial({
-      color: 0xFF00FF, // Magenta color for the orbs
+      color: 0xFF00FF,
       emissive: 0xFF00FF,
       emissiveIntensity: 0.5,
       metalness: 0.7,
@@ -65,6 +66,24 @@ const BackgroundScene = () => {
     }
     scene.add(orbGroup);
 
+    // Data Particle Streams
+    const particleCount = 2000;
+    const particlesGeometry = new THREE.BufferGeometry();
+    const posArray = new Float32Array(particleCount * 3);
+    for (let i = 0; i < particleCount * 3; i++) {
+      posArray[i] = (Math.random() - 0.5) * 100;
+    }
+    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    const particlesMaterial = new THREE.PointsMaterial({
+        size: 0.05,
+        color: 0x00C8FF,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        opacity: 0.8
+    });
+    const dataParticles = new THREE.Points(particlesGeometry, particlesMaterial);
+    scene.add(dataParticles);
+
     // Cyber Grid Floor
     const grid = new THREE.GridHelper(200, 100, 0x00C8FF, 0x00C8FF);
     (grid.material as THREE.Material).opacity = 0.1;
@@ -77,7 +96,7 @@ const BackgroundScene = () => {
     cyanLight.position.set(0, 0, 0);
     scene.add(cyanLight);
 
-    const purpleLight = new THREE.PointLight(0xff00ff, 50, 100, 2); // Magenta light
+    const purpleLight = new THREE.PointLight(0xff00ff, 50, 100, 2);
     purpleLight.position.set(0, 0, 0);
     scene.add(purpleLight);
 
@@ -112,6 +131,18 @@ const BackgroundScene = () => {
       orbGroup.rotation.y = elapsedTime * 0.05;
       orbGroup.rotation.x = elapsedTime * 0.02;
 
+      // Animate data particles
+      const positions = dataParticles.geometry.attributes.position.array as Float32Array;
+      for (let i = 0; i < particleCount; i++) {
+          const i3 = i * 3;
+          positions[i3 + 1] -= 0.05; // Move down
+          if (positions[i3 + 1] < -50) {
+              positions[i3 + 1] = 50; // Reset to top
+          }
+      }
+      dataParticles.geometry.attributes.position.needsUpdate = true;
+
+
       // Update lights position based on mouse
       const cameraOffset = new THREE.Vector3(mouse.x * 5, mouse.y * 5, camera.position.z + 2);
       cyanLight.position.lerp(cameraOffset.clone().setX(-mouse.x * 10), 0.05);
@@ -132,7 +163,31 @@ const BackgroundScene = () => {
       window.removeEventListener('resize', onWindowResize);
       window.removeEventListener('mousemove', onMouseMove);
       if (mountRef.current && renderer.domElement) {
-        mountRef.current.removeChild(renderer.domElement);
+        // dispose geometries, materials, textures
+        scene.traverse((object) => {
+            if (object instanceof THREE.Mesh) {
+                object.geometry.dispose();
+                // Check if material is an array
+                if (Array.isArray(object.material)) {
+                    object.material.forEach(material => material.dispose());
+                } else {
+                    object.material.dispose();
+                }
+            }
+        });
+        starGeometry.dispose();
+        starMaterial.dispose();
+        orbGeometry.dispose();
+        orbMaterial.dispose();
+        particlesGeometry.dispose();
+        particlesMaterial.dispose();
+        grid.geometry.dispose();
+        (grid.material as THREE.Material).dispose();
+
+        renderer.dispose();
+        if (mountRef.current && renderer.domElement) {
+            mountRef.current.removeChild(renderer.domElement);
+        }
       }
     };
   }, []);
@@ -147,3 +202,4 @@ const BackgroundScene = () => {
 };
 
 export default BackgroundScene;
+
