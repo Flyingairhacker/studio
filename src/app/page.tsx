@@ -24,9 +24,10 @@ async function getBrandingData(): Promise<GenerateSceneInfoOutput> {
     }
   } catch (error) {
     console.error("Failed to fetch branding data from Firestore:", error);
+    // This catch block will handle the missing environment variables error gracefully.
   }
   
-  // Return a default if Firestore fails
+  // Return a default if Firestore fails for any reason.
   return { weather: 'none', terrain: 'none' };
 }
 
