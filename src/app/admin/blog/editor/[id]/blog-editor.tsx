@@ -8,15 +8,14 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import type { BlogPost } from "@/lib/types";
 import { useFirestore } from "@/firebase";
-import { addDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { collection, doc, serverTimestamp, Timestamp } from "firebase/firestore";
+import { addDocumentNonBlocking, setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { collection, doc, serverTimestamp } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -74,7 +73,7 @@ export default function BlogEditor({ post }: { post?: Partial<BlogPost> | null }
   const watchedTitle = watch("title");
 
   useEffect(() => {
-    if (watchedTitle && !post) { // Only auto-slugify for new posts
+    if (watchedTitle && !post?.id) { // Only auto-slugify for new posts
       setValue("slug", slugify(watchedTitle), { shouldValidate: true });
     }
   }, [watchedTitle, setValue, post]);
@@ -109,13 +108,13 @@ export default function BlogEditor({ post }: { post?: Partial<BlogPost> | null }
       const isNewPost = !post?.id;
       const dataToSave = {
         ...data,
-        publishedAt: isNewPost ? serverTimestamp() : (post?.publishedAt || serverTimestamp()),
+        publishedAt: post?.publishedAt || serverTimestamp(), // Preserve original publish date on update
         updatedAt: serverTimestamp()
       };
       
       if (isNewPost) {
         const postsCollection = collection(firestore, "blog_posts");
-        addDocumentNonBlocking(postsCollection, dataToSave);
+        addDocumentNonBlocking(postsCollection, { ...dataToSave, publishedAt: serverTimestamp() });
         toast({
           title: "Post Created",
           description: "Your new blog post has been saved as a draft.",
@@ -129,7 +128,7 @@ export default function BlogEditor({ post }: { post?: Partial<BlogPost> | null }
         });
       }
       router.push("/admin/blog");
-      router.refresh(); // Tell Next.js to re-fetch server components
+      router.refresh();
     });
   };
 
@@ -178,12 +177,19 @@ export default function BlogEditor({ post }: { post?: Partial<BlogPost> | null }
             <Input id="imageUrl" {...register("imageUrl")} placeholder="https://example.com/image.jpg" />
             {errors.imageUrl && <p className="text-sm text-destructive">{errors.imageUrl.message}</p>}
         </div>
-        <div className="space-y-2">
-            <Label htmlFor="authorName">Author Name</Label>
-            <Input id="authorName" {...register("authorName")} />
-            {errors.authorName && <p className="text-sm text-destructive">{errors.authorName.message}</p>}
+         <div className="space-y-2">
+            <Label htmlFor="imageHint">Image Hint</Label>
+            <Input id="imageHint" {...register("imageHint")} placeholder="e.g. 'abstract technology'" />
+            {errors.imageHint && <p className="text-sm text-destructive">{errors.imageHint.message}</p>}
         </div>
       </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="authorName">Author Name</Label>
+        <Input id="authorName" {...register("authorName")} />
+        {errors.authorName && <p className="text-sm text-destructive">{errors.authorName.message}</p>}
+      </div>
+
 
       <div className="flex items-center space-x-4 rounded-md border p-4">
         <div className="flex-1 space-y-1">
