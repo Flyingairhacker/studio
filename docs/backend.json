@@ -203,62 +203,6 @@
         "description",
         "avatarUrl"
       ]
-    },
-    "BlogPost": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "BlogPost",
-      "type": "object",
-      "description": "Represents a single blog post or article.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the BlogPost entity."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title of the blog post."
-        },
-        "slug": {
-          "type": "string",
-          "description": "A URL-friendly version of the title."
-        },
-        "content": {
-          "type": "string",
-          "description": "The full content of the blog post, usually in Markdown format."
-        },
-        "excerpt": {
-          "type": "string",
-          "description": "A short summary of the blog post."
-        },
-        "imageUrl": {
-          "type": "string",
-          "description": "URL for the post's feature image.",
-          "format": "uri"
-        },
-        "publishedAt": {
-          "type": "string",
-          "description": "The date and time when the post was published.",
-          "format": "date-time"
-        },
-        "authorName": {
-          "type": "string",
-          "description": "The name of the post's author."
-        },
-        "isPublished": {
-          "type": "boolean",
-          "description": "Indicates if the blog post is publicly visible."
-        }
-      },
-      "required": [
-        "id",
-        "title",
-        "slug",
-        "content",
-        "excerpt",
-        "publishedAt",
-        "authorName",
-        "isPublished"
-      ]
     }
   },
   "auth": {
@@ -348,26 +292,8 @@
             }
           ]
         }
-      },
-      {
-        "path": "/blog_posts/{postId}",
-        "definition": {
-          "entityName": "BlogPost",
-          "schema": {
-            "$ref": "#/backend/entities/BlogPost"
-          },
-          "description": "Stores individual blog posts. Publicly readable if published, admin-only write access.",
-          "params": [
-            {
-              "name": "postId",
-              "description": "The unique identifier for the blog post."
-            }
-          ]
-        }
       }
     ],
     "reasoning": "The Firestore data structure is designed to support the Cyber Architect portfolio website's CMS needs, focusing on authorization independence, clarity, and security. The structure uses structural segregation to group data with similar access requirements. It also denormalizes authorization data to avoid `get()` calls in security rules, enabling atomic operations. The structure includes collections for projects, tech stacks, contact messages, branding, and bio information. The design emphasizes flat collections to optimize querying and simplify security rules, as well as enabling secure list operations (QAPs)."
   }
 }
-
-    

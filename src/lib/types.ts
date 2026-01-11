@@ -1,5 +1,5 @@
-import type { LucideIcon } from "lucide-react";
-import type { Timestamp } from "firebase/firestore";
+import type { LucideIcon } from 'lucide-react';
+import type { Timestamp } from 'firebase/firestore';
 
 export interface Project {
   id: string;
@@ -23,7 +23,7 @@ export interface TechStack {
 }
 
 export interface Service {
-  id:string;
+  id: string;
   title: string;
   description: string;
   Icon: LucideIcon;
@@ -43,32 +43,17 @@ export interface ContactMessage {
   name: string;
   email: string;
   message: string;
-  sentAt: Timestamp | Date | string; 
+  sentAt: Timestamp | Date | string;
   createdAt?: Timestamp | Date | string;
 }
 
 export interface Bio {
-    id: string;
-    name: string;
-    title: string;
-    description: string;
-    avatarUrl: string;
-    contactTitle?: string;
-    contactSubtitle?: string;
-    modelUrl?: string;
-}
-
-export interface BlogPost {
   id: string;
+  name: string;
   title: string;
-  slug: string;
-  content: string;
-  excerpt: string;
-  imageUrl: string;
-  imageHint?: string;
-  publishedAt: Timestamp | Date | string;
-  authorName: string;
-  isPublished: boolean;
-  createdAt?: Timestamp | Date | string;
-  updatedAt?: Timestamp | Date | string;
+  description: string;
+  avatarUrl: string;
+  contactTitle?: string;
+  contactSubtitle?: string;
+  modelUrl?: string;
 }
