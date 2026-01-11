@@ -5,7 +5,7 @@ export interface Project {
   id: string;
   title: string;
   description: string;
-  tags: string[];
+  techStackIds?: string[]; // Changed from tags
   imageUrl: string;
   imageHint: string;
   systemType: 'Mobile' | 'IoT' | 'Desktop' | 'Web';

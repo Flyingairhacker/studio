@@ -21,7 +21,7 @@ const Projects = () => {
 
   const { data: remoteProjects, isLoading: isRemoteLoading } = useCollection<Project>(projectsQuery);
 
-  const [projects, setProjects] = useState<Project[]>(localProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ const Projects = () => {
     }
 
     if (!isRemoteLoading) {
-        setProjects(remoteProjects && remoteProjects.length > 0 ? remoteProjects : localProjects);
+        setProjects(remoteProjects && remoteProjects.length > 0 ? remoteProjects : []);
         setIsLoading(false);
     }
   }, [servicesAvailable, isRemoteLoading, remoteProjects]);

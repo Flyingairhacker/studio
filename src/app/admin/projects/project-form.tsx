@@ -3,12 +3,12 @@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useTransition } from "react";
+import { useTransition, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import type { Project } from "@/lib/types";
-import { useFirestore } from "@/firebase";
+import type { Project, TechStack } from "@/lib/types";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { collection, doc, serverTimestamp } from "firebase/firestore";
+import { collection, doc, serverTimestamp, query, orderBy } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,11 +25,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const projectSchema = z.object({
     title: z.string().min(1, "Title is required"),
     description: z.string().min(1, "Description is required"),
-    tags: z.string().min(1, "Tags are required"),
+    techStackIds: z.array(z.string()).optional(),
     systemType: z.enum(['Mobile', 'IoT', 'Desktop', 'Web']),
     repoUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
     liveUrl: z.string().url("Must be a valid URL").optional().or(z.literal('')),
@@ -51,12 +54,18 @@ export function ProjectForm({ project, children, onClose, isOpen }: ProjectFormP
     const { toast } = useToast();
     const firestore = useFirestore();
 
+    const techStacksQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, "tech_stacks"), orderBy("name"));
+    }, [firestore]);
+    const { data: techStacks, isLoading: isLoadingTechStacks } = useCollection<TechStack>(techStacksQuery);
+
     const { register, handleSubmit, control, formState: { errors } } = useForm<ProjectFormData>({
         resolver: zodResolver(projectSchema),
         defaultValues: {
             title: project?.title || "",
             description: project?.description || "",
-            tags: project?.tags?.join(", ") || "",
+            techStackIds: project?.techStackIds || [],
             systemType: project?.systemType || "Web",
             repoUrl: project?.repoUrl || "",
             liveUrl: project?.liveUrl || "",
@@ -64,6 +73,13 @@ export function ProjectForm({ project, children, onClose, isOpen }: ProjectFormP
             imageHint: project?.imageHint || "tech placeholder"
         },
     });
+
+     useEffect(() => {
+        if (project && isOpen) {
+            handleSubmit((d) => {})(); // re-validate to clear previous errors
+        }
+    }, [project, isOpen, handleSubmit]);
+
 
     const processSubmit = async (data: ProjectFormData) => {
         if (!firestore) {
@@ -76,14 +92,11 @@ export function ProjectForm({ project, children, onClose, isOpen }: ProjectFormP
         }
 
         startTransition(() => {
-            const { tags, ...rest } = data;
             const projectData = {
-                ...rest,
-                tags: tags.split(',').map(tag => tag.trim()),
+                ...data,
             };
 
             if (project?.id) {
-                // Update existing project
                 const projectRef = doc(firestore, "projects", project.id);
                 updateDocumentNonBlocking(projectRef, {
                     ...projectData,
@@ -94,7 +107,6 @@ export function ProjectForm({ project, children, onClose, isOpen }: ProjectFormP
                     description: "Your project portfolio has been successfully updated."
                 });
             } else {
-                // Add new project
                 const projectsCollection = collection(firestore, "projects");
                 addDocumentNonBlocking(projectsCollection, {
                     ...projectData,
@@ -120,60 +132,94 @@ export function ProjectForm({ project, children, onClose, isOpen }: ProjectFormP
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(processSubmit)} className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="title" className="text-right">Title</Label>
-                        <Input id="title" {...register("title")} className="col-span-3" />
-                        {errors.title && <p className="col-span-4 text-sm text-destructive">{errors.title.message}</p>}
+                    <div className="space-y-2">
+                        <Label htmlFor="title">Title</Label>
+                        <Input id="title" {...register("title")} />
+                        {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="description" className="text-right">Description</Label>
-                        <Textarea id="description" {...register("description")} className="col-span-3" />
-                        {errors.description && <p className="col-span-4 text-sm text-destructive">{errors.description.message}</p>}
+                     <div className="space-y-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea id="description" {...register("description")} />
+                        {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="systemType" className="text-right">System Type</Label>
+                    <div className="space-y-2">
+                        <Label>Tech Stacks</Label>
                          <Controller
-                            name="systemType"
+                            name="techStackIds"
                             control={control}
                             render={({ field }) => (
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <SelectTrigger className="col-span-3">
-                                        <SelectValue placeholder="Select a system type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Web">Web</SelectItem>
-                                        <SelectItem value="Mobile">Mobile</SelectItem>
-                                        <SelectItem value="IoT">IoT</SelectItem>
-                                        <SelectItem value="Desktop">Desktop</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <ScrollArea className="h-32 w-full rounded-md border p-4">
+                                {isLoadingTechStacks ? (
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-6 w-1/2" />
+                                        <Skeleton className="h-6 w-2/3" />
+                                        <Skeleton className="h-6 w-1/2" />
+                                    </div>
+                                ) : techStacks?.map((tech) => (
+                                    <div key={tech.id} className="flex items-center space-x-2 mb-2">
+                                        <Checkbox
+                                            id={`tech-${tech.id}`}
+                                            checked={field.value?.includes(tech.id)}
+                                            onCheckedChange={(checked) => {
+                                                const newValue = checked
+                                                    ? [...(field.value || []), tech.id]
+                                                    : (field.value || []).filter((id) => id !== tech.id);
+                                                field.onChange(newValue);
+                                            }}
+                                        />
+                                        <label
+                                            htmlFor={`tech-${tech.id}`}
+                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                        >
+                                            {tech.name}
+                                        </label>
+                                    </div>
+                                ))}
+                                </ScrollArea>
                             )}
                          />
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="tags" className="text-right">Tags</Label>
-                        <Input id="tags" {...register("tags")} placeholder="Flutter, Firebase, IoT" className="col-span-3" />
-                        {errors.tags && <p className="col-span-4 text-sm text-destructive">{errors.tags.message}</p>}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="systemType">System Type</Label>
+                             <Controller
+                                name="systemType"
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a system type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Web">Web</SelectItem>
+                                            <SelectItem value="Mobile">Mobile</SelectItem>
+                                            <SelectItem value="IoT">IoT</SelectItem>
+                                            <SelectItem value="Desktop">Desktop</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                             />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="imageHint">Image Hint</Label>
+                            <Input id="imageHint" {...register("imageHint")} placeholder="e.g. 'futuristic dashboard'" />
+                            {errors.imageHint && <p className="text-sm text-destructive">{errors.imageHint.message}</p>}
+                        </div>
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="imageUrl" className="text-right">Image URL</Label>
-                        <Input id="imageUrl" {...register("imageUrl")} className="col-span-3" />
-                        {errors.imageUrl && <p className="col-span-4 text-sm text-destructive">{errors.imageUrl.message}</p>}
+                    <div className="space-y-2">
+                        <Label htmlFor="imageUrl">Image URL</Label>
+                        <Input id="imageUrl" {...register("imageUrl")} />
+                        {errors.imageUrl && <p className="text-sm text-destructive">{errors.imageUrl.message}</p>}
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="imageHint" className="text-right">Image Hint</Label>
-                        <Input id="imageHint" {...register("imageHint")} placeholder="e.g. 'futuristic dashboard'" className="col-span-3" />
-                        {errors.imageHint && <p className="col-span-4 text-sm text-destructive">{errors.imageHint.message}</p>}
+                     <div className="space-y-2">
+                        <Label htmlFor="repoUrl">Repo URL</Label>
+                        <Input id="repoUrl" {...register("repoUrl")} />
+                        {errors.repoUrl && <p className="text-sm text-destructive">{errors.repoUrl.message}</p>}
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="repoUrl" className="text-right">Repo URL</Label>
-                        <Input id="repoUrl" {...register("repoUrl")} className="col-span-3" />
-                        {errors.repoUrl && <p className="col-span-4 text-sm text-destructive">{errors.repoUrl.message}</p>}
-                    </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="liveUrl" className="text-right">Live URL</Label>
-                        <Input id="liveUrl" {...register("liveUrl")} className="col-span-3" />
-                        {errors.liveUrl && <p className="col-span-4 text-sm text-destructive">{errors.liveUrl.message}</p>}
+                     <div className="space-y-2">
+                        <Label htmlFor="liveUrl">Live URL</Label>
+                        <Input id="liveUrl" {...register("liveUrl")} />
+                        {errors.liveUrl && <p className="text-sm text-destructive">{errors.liveUrl.message}</p>}
                     </div>
                     <DialogFooter>
                         <DialogClose asChild>

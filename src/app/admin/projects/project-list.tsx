@@ -3,9 +3,9 @@
 
 import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
-import type { Project } from "@/lib/types";
+import type { Project, TechStack } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { PlusCircle, MoreVertical, Edit, Trash2 } from "lucide-react";
+import { PlusCircle, MoreVertical, Edit, Trash2, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -37,6 +37,7 @@ import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, doc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import * as LucideIcons from 'lucide-react';
 
 
 export default function ProjectList() {
@@ -55,8 +56,21 @@ export default function ProjectList() {
         if (!firestore) return null;
         return query(collection(firestore, "projects"), orderBy("createdAt", "desc"));
     }, [firestore]);
+    const { data: projects, isLoading: isLoadingProjects } = useCollection<Project>(projectsQuery);
+    
+    const techStacksQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, "tech_stacks"));
+    }, [firestore]);
+    const { data: techStacks, isLoading: isLoadingTechStacks } = useCollection<TechStack>(techStacksQuery);
 
-    const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
+    const techStacksMap = useMemo(() => {
+        if (!techStacks) return new Map();
+        return techStacks.reduce((acc, tech) => {
+            acc.set(tech.id, tech);
+            return acc;
+        }, new Map<string, TechStack>());
+    }, [techStacks]);
 
     const handleEdit = (project: Project) => {
         setSelectedProject(project);
@@ -80,7 +94,7 @@ export default function ProjectList() {
         setSelectedProject(undefined);
     };
     
-    if (isLoading && !isClient) {
+    if ((isLoadingProjects || isLoadingTechStacks) && !isClient) {
         return (
              <div className="p-4">
                 <div className="flex items-center justify-between p-4 border-b border-border/50">
@@ -128,7 +142,7 @@ export default function ProjectList() {
                                 <TableHead className="w-[80px]">Image</TableHead>
                                 <TableHead>Title</TableHead>
                                 <TableHead className="hidden md:table-cell">System Type</TableHead>
-                                <TableHead className="hidden lg:table-cell">Tags</TableHead>
+                                <TableHead className="hidden lg:table-cell">Tech Stack</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -141,8 +155,16 @@ export default function ProjectList() {
                                     <TableCell className="font-medium">{project.title}</TableCell>
                                     <TableCell className="hidden md:table-cell">{project.systemType}</TableCell>
                                     <TableCell className="hidden lg:table-cell">
-                                        <div className="flex flex-wrap gap-1">
-                                            {project.tags.slice(0, 3).map(tag => <span key={tag} className="text-xs bg-muted/50 px-2 py-1 rounded-full">{tag}</span>)}
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            {(project.techStackIds || []).slice(0, 4).map(techId => {
+                                                const tech = techStacksMap.get(techId);
+                                                if (!tech) return null;
+                                                const Icon = (LucideIcons as any)[tech.iconName] as LucideIcon;
+                                                return Icon ? <Icon key={techId} className="h-5 w-5" title={tech.name} style={{ color: `hsl(${tech.color.split(',')[0]}, ${tech.color.split(',')[1]}, ${tech.color.split(',')[2]})` }} /> : null;
+                                            })}
+                                            {(project.techStackIds?.length || 0) > 4 && (
+                                                <span className="text-xs text-muted-foreground">+{ (project.techStackIds?.length || 0) - 4} more</span>
+                                            )}
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-right">

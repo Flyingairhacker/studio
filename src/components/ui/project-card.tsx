@@ -1,13 +1,16 @@
 "use client";
 
-import type { Project } from "@/lib/types";
+import type { Project, TechStack } from "@/lib/types";
 import { useRef } from "react";
 import Image from "next/image";
-import { ArrowUpRight, Code, Globe, Laptop, Server, Smartphone } from "lucide-react";
+import { ArrowUpRight, Code, Globe, Laptop, Server, Smartphone, type LucideIcon } from "lucide-react";
 import GlassCard from "./glass-card";
 import { Button } from "./button";
 import { Badge } from "./badge";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection, query, where, documentId } from "firebase/firestore";
+import * as LucideIcons from 'lucide-react';
 
 const systemIcons = {
   Mobile: Smartphone,
@@ -18,6 +21,14 @@ const systemIcons = {
 
 const ProjectCard = ({ project }: { project: Project }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const firestore = useFirestore();
+  
+  const techStacksQuery = useMemoFirebase(() => {
+    if (!firestore || !project.techStackIds || project.techStackIds.length === 0) return null;
+    return query(collection(firestore, "tech_stacks"), where(documentId(), "in", project.techStackIds));
+  }, [firestore, project.techStackIds]);
+
+  const { data: techStacks } = useCollection<TechStack>(techStacksQuery);
   
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -94,8 +105,20 @@ const ProjectCard = ({ project }: { project: Project }) => {
             <h3 className="font-headline text-2xl font-bold text-primary-foreground">{project.title}</h3>
             <p className="mt-2 text-muted-foreground flex-grow">{project.description}</p>
             <div className="mt-4 flex flex-wrap gap-2">
-              {project.tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="bg-secondary/10 text-secondary">{tag}</Badge>
+              {techStacks ? techStacks.map((tech) => {
+                const Icon = (LucideIcons as any)[tech.iconName] as LucideIcon | undefined;
+                return (
+                  <Badge key={tech.id} variant="secondary" className="bg-secondary/10 text-secondary" style={{
+                    borderColor: `hsl(${tech.color.split(',')[0]}, ${tech.color.split(',')[1]}, ${tech.color.split(',')[2]} / 0.5)`
+                  }}>
+                    {Icon && <Icon className="mr-1.5 h-4 w-4" style={{ color: `hsl(${tech.color.split(',')[0]}, ${tech.color.split(',')[1]}, ${tech.color.split(',')[2]})`}}/>}
+                    {tech.name}
+                  </Badge>
+                );
+              }) : (project.techStackIds || []).map(id => (
+                 <Badge key={id} variant="secondary" className="bg-secondary/10 text-secondary animate-pulse">
+                    <div className="h-4 w-10 rounded-full bg-secondary/20"></div>
+                 </Badge>
               ))}
             </div>
           </div>
