@@ -369,3 +369,5 @@
     "reasoning": "The Firestore data structure is designed to support the Cyber Architect portfolio website's CMS needs, focusing on authorization independence, clarity, and security. The structure uses structural segregation to group data with similar access requirements. It also denormalizes authorization data to avoid `get()` calls in security rules, enabling atomic operations. The structure includes collections for projects, tech stacks, contact messages, branding, and bio information. The design emphasizes flat collections to optimize querying and simplify security rules, as well as enabling secure list operations (QAPs)."
   }
 }
+
+    

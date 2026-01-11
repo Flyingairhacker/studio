@@ -114,19 +114,19 @@ service cloud.firestore {
     /**
      * @description Manages blog posts. Allows public read access for published posts, but restricts all write operations to authenticated administrators.
      * @path /blog_posts/{postId}
-     * @allow (get) Any user can read a single published blog post.
-     * @allow (list) Authenticated admin can list all posts. Public can only list published posts.
-     * @deny (update) An unauthenticated user attempts to modify a blog post.
+     * @allow (read, write) Admins can perform all operations.
+     * @allow (get) Public users can read single published posts.
+     * @deny (list) Public users cannot list the collection.
      * @principle Conditional Public Read: Content is only publicly visible if the `isPublished` flag is true, ensuring drafts remain private. Writes are admin-only.
      */
      match /blog_posts/{postId} {
         // Admins (any signed-in user) can perform all read and write operations.
-        // This is necessary for the admin panel to list, edit, create, and delete posts.
         allow read, write: if isSignedIn();
         
         // Public users (not signed in) can only read single documents that are published.
-        // They cannot list the collection.
         allow get: if resource.data.isPublished == true;
      }
   }
 }
+
+    
