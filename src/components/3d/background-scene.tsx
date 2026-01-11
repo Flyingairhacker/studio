@@ -84,6 +84,30 @@ const BackgroundScene = () => {
     const dataParticles = new THREE.Points(particlesGeometry, particlesMaterial);
     scene.add(dataParticles);
 
+    // Digital Rain
+    const rainCount = 5000;
+    const rainGeometry = new THREE.BufferGeometry();
+    const rainPositions = new Float32Array(rainCount * 3);
+    const rainVelocities = new Float32Array(rainCount);
+
+    for (let i = 0; i < rainCount; i++) {
+        rainPositions[i * 3] = (Math.random() - 0.5) * 150;
+        rainPositions[i * 3 + 1] = Math.random() * 100 - 50;
+        rainPositions[i * 3 + 2] = (Math.random() - 0.5) * 150;
+        rainVelocities[i] = Math.random() * 0.2 + 0.1;
+    }
+    rainGeometry.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3));
+    const rainMaterial = new THREE.PointsMaterial({
+        color: 0x00ff00,
+        size: 0.15,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        opacity: 0.7,
+    });
+    const digitalRain = new THREE.Points(rainGeometry, rainMaterial);
+    scene.add(digitalRain);
+
+
     // Cyber Grid Floor
     const grid = new THREE.GridHelper(200, 100, 0x00C8FF, 0x00C8FF);
     (grid.material as THREE.Material).opacity = 0.1;
@@ -132,15 +156,25 @@ const BackgroundScene = () => {
       orbGroup.rotation.x = elapsedTime * 0.02;
 
       // Animate data particles
-      const positions = dataParticles.geometry.attributes.position.array as Float32Array;
+      const particlePositions = dataParticles.geometry.attributes.position.array as Float32Array;
       for (let i = 0; i < particleCount; i++) {
           const i3 = i * 3;
-          positions[i3 + 1] -= 0.05; // Move down
-          if (positions[i3 + 1] < -50) {
-              positions[i3 + 1] = 50; // Reset to top
+          particlePositions[i3 + 1] -= 0.05; // Move down
+          if (particlePositions[i3 + 1] < -50) {
+              particlePositions[i3 + 1] = 50; // Reset to top
           }
       }
       dataParticles.geometry.attributes.position.needsUpdate = true;
+      
+      // Animate digital rain
+      const rainPos = rainGeometry.attributes.position.array as Float32Array;
+      for (let i = 0; i < rainCount; i++) {
+          rainPos[i * 3 + 1] -= rainVelocities[i];
+          if (rainPos[i * 3 + 1] < -50) {
+              rainPos[i * 3 + 1] = 50;
+          }
+      }
+      rainGeometry.attributes.position.needsUpdate = true;
 
 
       // Update lights position based on mouse
@@ -181,6 +215,8 @@ const BackgroundScene = () => {
         orbMaterial.dispose();
         particlesGeometry.dispose();
         particlesMaterial.dispose();
+        rainGeometry.dispose();
+        rainMaterial.dispose();
         grid.geometry.dispose();
         (grid.material as THREE.Material).dispose();
 
@@ -202,4 +238,3 @@ const BackgroundScene = () => {
 };
 
 export default BackgroundScene;
-
