@@ -12,6 +12,7 @@ import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/no
 import { collection, doc, serverTimestamp } from "firebase/firestore";
 import * as LucideIcons from 'lucide-react';
 import { Check, ChevronsUpDown } from "lucide-react";
+import { iconNames } from "@/lib/lucide-icon-names";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -37,7 +38,6 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 
-const iconNames = Object.keys(LucideIcons).filter(k => k !== 'createLucideIcon' && k !== 'icons' && k !== 'default');
 
 const techStackSchema = z.object({
     name: z.string().min(1, "Name is required"),
@@ -285,5 +285,3 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
         </Dialog>
     );
 }
-
-    
