@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useDoc, useFirestore, useMemoFirebase, useFirebaseServicesAvailable } from "@/firebase";
@@ -7,12 +8,20 @@ import SequenceBreaker from "@/app/admin/games/sequence-breaker";
 import CodeCracker from "@/app/admin/games/code-cracker";
 import GlitchHunt from "@/app/admin/games/glitch-hunt";
 import FirewallBreach from "@/app/admin/games/firewall-breach";
-import AsteroidDefense from "@/app/admin/games/asteroid-defense";
+import DataFlow from "@/app/admin/games/data-flow";
 import SectionTitle from "../ui/section-title";
 import GlassCard from "../ui/glass-card";
 import { useState, useEffect } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea, ScrollBar } from "../ui/scroll-area";
+import dynamic from 'next/dynamic';
+
+const AsteroidDefense = dynamic(() => import('@/app/admin/games/asteroid-defense'), {
+  loading: () => <Skeleton className="h-[460px] w-full max-w-sm mx-auto" />,
+  ssr: false,
+});
+
 
 export default function GamesSection() {
     const servicesAvailable = useFirebaseServicesAvailable();
@@ -60,15 +69,19 @@ export default function GamesSection() {
                 title="Training Simulations"
                 subtitle="Hone your cognitive abilities with these training exercises."
             />
-            <GlassCard className="max-w-3xl mx-auto mt-16 p-8">
-                 <Tabs defaultValue="sequence-breaker">
-                    <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-5">
-                        <TabsTrigger value="sequence-breaker">Sequence Breaker</TabsTrigger>
-                        <TabsTrigger value="code-cracker">Code Cracker</TabsTrigger>
-                        <TabsTrigger value="glitch-hunt">Glitch Hunt</TabsTrigger>
-                        <TabsTrigger value="firewall-breach">Firewall Breach</TabsTrigger>
-                        <TabsTrigger value="asteroid-defense">Asteroid Defense</TabsTrigger>
-                    </TabsList>
+            <GlassCard className="max-w-4xl mx-auto mt-16 p-8">
+                 <Tabs defaultValue="sequence-breaker" className="w-full">
+                    <ScrollArea className="w-full whitespace-nowrap">
+                        <TabsList className="inline-flex h-auto">
+                            <TabsTrigger value="sequence-breaker">Sequence Breaker</TabsTrigger>
+                            <TabsTrigger value="code-cracker">Code Cracker</TabsTrigger>
+                            <TabsTrigger value="glitch-hunt">Glitch Hunt</TabsTrigger>
+                            <TabsTrigger value="firewall-breach">Firewall Breach</TabsTrigger>
+                            <TabsTrigger value="asteroid-defense">Asteroid Defense</TabsTrigger>
+                            <TabsTrigger value="data-flow">Data Flow</TabsTrigger>
+                        </TabsList>
+                        <ScrollBar orientation="horizontal" />
+                    </ScrollArea>
                     <TabsContent value="sequence-breaker" className="mt-6">
                         <p className="text-sm text-center text-muted-foreground mb-4">
                           Observe the sequence and repeat it. The sequence gets longer with each
@@ -99,6 +112,12 @@ export default function GamesSection() {
                             Type the words on the falling asteroids to destroy them before they hit your base.
                         </p>
                         <AsteroidDefense />
+                    </TabsContent>
+                    <TabsContent value="data-flow" className="mt-6">
+                         <p className="text-sm text-center text-muted-foreground mb-4">
+                            Rotate the tiles to connect the source to the destination and complete the data circuit.
+                        </p>
+                        <DataFlow />
                     </TabsContent>
                 </Tabs>
             </GlassCard>

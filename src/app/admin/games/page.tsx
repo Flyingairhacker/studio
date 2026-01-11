@@ -1,11 +1,21 @@
+
 import GlassCard from '@/components/ui/glass-card';
 import { Gamepad2 } from 'lucide-react';
 import SequenceBreaker from './sequence-breaker';
 import CodeCracker from './code-cracker';
 import GlitchHunt from './glitch-hunt';
 import FirewallBreach from './firewall-breach';
-import AsteroidDefense from './asteroid-defense';
+import DataFlow from './data-flow';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import dynamic from 'next/dynamic';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const AsteroidDefense = dynamic(() => import('./asteroid-defense'), {
+  loading: () => <Skeleton className="h-[460px] w-full max-w-sm mx-auto" />,
+  ssr: false,
+});
+
 
 export default function GamesPage() {
   return (
@@ -21,13 +31,17 @@ export default function GamesPage() {
 
       <GlassCard className="p-6">
         <Tabs defaultValue="sequence-breaker">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="sequence-breaker">Sequence Breaker</TabsTrigger>
-            <TabsTrigger value="code-cracker">Code Cracker</TabsTrigger>
-            <TabsTrigger value="glitch-hunt">Glitch Hunt</TabsTrigger>
-            <TabsTrigger value="firewall-breach">Firewall Breach</TabsTrigger>
-            <TabsTrigger value="asteroid-defense">Asteroid Defense</TabsTrigger>
-          </TabsList>
+          <ScrollArea className="w-full whitespace-nowrap">
+            <TabsList className="inline-flex h-auto">
+              <TabsTrigger value="sequence-breaker">Sequence Breaker</TabsTrigger>
+              <TabsTrigger value="code-cracker">Code Cracker</TabsTrigger>
+              <TabsTrigger value="glitch-hunt">Glitch Hunt</TabsTrigger>
+              <TabsTrigger value="firewall-breach">Firewall Breach</TabsTrigger>
+              <TabsTrigger value="asteroid-defense">Asteroid Defense</TabsTrigger>
+              <TabsTrigger value="data-flow">Data Flow</TabsTrigger>
+            </TabsList>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
           <TabsContent value="sequence-breaker" className="mt-6">
              <h2 className="text-xl font-headline font-semibold border-b pb-2 mb-4 flex items-center gap-2">
                 <Gamepad2 className="text-primary" /> Sequence Breaker
@@ -73,6 +87,15 @@ export default function GamesPage() {
                 Type the words on the falling asteroids to destroy them before they hit your base.
             </p>
             <AsteroidDefense />
+          </TabsContent>
+          <TabsContent value="data-flow" className="mt-6">
+             <h2 className="text-xl font-headline font-semibold border-b pb-2 mb-4 flex items-center gap-2">
+                <Gamepad2 className="text-primary" /> Data Flow
+            </h2>
+             <p className="text-sm text-muted-foreground mb-4">
+                Rotate the tiles to connect the source to the destination and complete the data circuit.
+            </p>
+            <DataFlow />
           </TabsContent>
         </Tabs>
       </GlassCard>
