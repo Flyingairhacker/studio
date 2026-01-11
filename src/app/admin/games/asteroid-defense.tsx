@@ -1,7 +1,9 @@
+
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { P5CanvasInstance, ReactP5Wrapper } from '@p5-wrapper/react';
+import React, { useState } from 'react';
+import type { P5CanvasInstance } from '@p5-wrapper/react';
+import { ReactP5Wrapper } from '@p5-wrapper/react';
 import { Button } from '@/components/ui/button';
 import { Rocket } from 'lucide-react';
 
@@ -11,36 +13,50 @@ const WORDS = [
   'malware', 'rootkit', 'phishing', 'trojan', 'worm', 'zombie', 'botnet',
 ];
 
-function sketch(p5: P5CanvasInstance) {
-  class Asteroid {
-    x: number;
-    y: number;
-    word: string;
-    speed: number;
+class Asteroid {
+  x: number;
+  y: number;
+  word: string;
+  speed: number;
 
-    constructor(word: string) {
-      this.x = p5.random(p5.width * 0.1, p5.width * 0.9);
-      this.y = 0;
-      this.word = word;
-      this.speed = p5.random(0.5, 2);
-    }
-
-    update() {
-      this.y += this.speed;
-    }
-
-    draw() {
-      p5.fill(255);
-      p5.textAlign(p5.CENTER);
-      p5.textSize(16);
-      p5.text(this.word, this.x, this.y);
-    }
-
-    isOffScreen() {
-      return this.y > p5.height;
-    }
+  constructor(p5: P5CanvasInstance, word: string) {
+    this.x = p5.random(p5.width * 0.1, p5.width * 0.9);
+    this.y = 0;
+    this.word = word;
+    this.speed = p5.random(0.5, 2);
   }
 
+  update() {
+    this.y += this.speed;
+  }
+
+  draw(p5: P5CanvasInstance) {
+    p5.fill(255);
+    p5.textAlign(p5.CENTER);
+    p5.textSize(16);
+    p5.text(this.word, this.x, this.y);
+  }
+
+  isOffScreen(p5: P5CanvasInstance) {
+    return this.y > p5.height;
+  }
+}
+
+function checkWord(asteroids: Asteroid[], userInput: string, forceCheck = false): { destroyed: boolean, newScore: number } {
+    let destroyed = false;
+    let scoreIncrement = 0;
+    for (let i = asteroids.length - 1; i >= 0; i--) {
+        if (asteroids[i].word === userInput) {
+            scoreIncrement = userInput.length;
+            asteroids.splice(i, 1);
+            destroyed = true;
+            break; 
+        }
+    }
+    return { destroyed, newScore: scoreIncrement };
+}
+
+function sketch(p5: P5CanvasInstance) {
   let asteroids: Asteroid[] = [];
   let score = 0;
   let lives = 3;
@@ -49,7 +65,7 @@ function sketch(p5: P5CanvasInstance) {
   let onGameOver: (finalScore: number) => void;
 
   p5.updateWithProps = (props: any) => {
-    if (props.gameState) {
+    if (props.gameState && gameState !== props.gameState) {
       gameState = props.gameState;
       if (gameState === 'playing') {
         asteroids = [];
@@ -93,15 +109,15 @@ function sketch(p5: P5CanvasInstance) {
     // Add new asteroids periodically
     if (p5.frameCount % 90 === 0) {
       const newWord = p5.random(WORDS);
-      asteroids.push(new Asteroid(newWord));
+      asteroids.push(new Asteroid(p5, newWord));
     }
 
     // Update and draw asteroids
     for (let i = asteroids.length - 1; i >= 0; i--) {
       asteroids[i].update();
-      asteroids[i].draw();
+      asteroids[i].draw(p5);
 
-      if (asteroids[i].isOffScreen()) {
+      if (asteroids[i].isOffScreen(p5)) {
         asteroids.splice(i, 1);
         lives--;
         if (lives <= 0) {
@@ -129,11 +145,20 @@ function sketch(p5: P5CanvasInstance) {
     p5.line(0, p5.height - 5, p5.width, p5.height - 5);
   };
   
+  const processInput = (force = false) => {
+    if (gameState !== 'playing') return;
+    const result = checkWord(asteroids, userInput, force);
+    if(result.destroyed) {
+        score += result.newScore;
+        userInput = '';
+    }
+  }
+
   p5.keyTyped = () => {
     if (gameState !== 'playing') return;
     if (p5.key.match(/^[a-z]$/i)) {
       userInput += p5.key;
-      checkWord();
+      processInput();
     }
   };
 
@@ -142,25 +167,9 @@ function sketch(p5: P5CanvasInstance) {
      if (p5.keyCode === p5.BACKSPACE) {
        userInput = userInput.substring(0, userInput.length - 1);
      } else if (p5.keyCode === p5.ENTER) {
-       checkWord(true); // Force check on enter
+       processInput(true); // Force check on enter
      }
   };
-
-  function checkWord(forceCheck = false) {
-    let destroyed = false;
-    for (let i = asteroids.length - 1; i >= 0; i--) {
-      if (asteroids[i].word === userInput) {
-        asteroids.splice(i, 1);
-        score += userInput.length;
-        userInput = '';
-        destroyed = true;
-        break; // Only destroy one at a time
-      }
-    }
-    if (forceCheck && !destroyed) {
-       // Optional: add a penalty or negative feedback sound/visual
-    }
-  }
 }
 
 export default function AsteroidDefense() {
