@@ -120,8 +120,13 @@ service cloud.firestore {
      * @principle Conditional Public Read: Content is only publicly visible if the `isPublished` flag is true, ensuring drafts remain private. Writes are admin-only.
      */
      match /blog_posts/{postId} {
-        allow read: if isSignedIn() || resource.data.isPublished == true;
-        allow write: if isSignedIn();
+        // Admins (any signed-in user) can perform all read and write operations.
+        // This is necessary for the admin panel to list, edit, create, and delete posts.
+        allow read, write: if isSignedIn();
+        
+        // Public users (not signed in) can only read single documents that are published.
+        // They cannot list the collection.
+        allow get: if resource.data.isPublished == true;
      }
   }
 }
