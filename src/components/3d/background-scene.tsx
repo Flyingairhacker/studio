@@ -3,17 +3,26 @@
 
 import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
-interface BackgroundSceneProps {
+interface BrandingData {
   weather: 'none' | 'rain' | 'snow' | 'fog';
   terrain: 'none' | 'city' | 'hills' | 'beach';
 }
 
-const BackgroundScene = ({ weather, terrain }: BackgroundSceneProps) => {
+const BackgroundScene = () => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const weatherParticlesRef = useRef<THREE.Points | null>(null);
   const terrainGroupRef = useRef<THREE.Group | null>(null);
+
+  const firestore = useFirestore();
+  const brandingRef = useMemoFirebase(() => (firestore ? doc(firestore, "branding", "live-branding") : null), [firestore]);
+  const { data: branding } = useDoc<BrandingData>(brandingRef);
+
+  const weather = branding?.weather ?? 'none';
+  const terrain = branding?.terrain ?? 'none';
 
   useEffect(() => {
     if (!mountRef.current) return;

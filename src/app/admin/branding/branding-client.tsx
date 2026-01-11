@@ -6,10 +6,15 @@ import GlassCard from "@/components/ui/glass-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Bot, Palette, Terminal } from "lucide-react";
+import { Bot, Loader2, Palette, Terminal, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateTheme } from "./actions";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { generateSceneInfo } from "@/ai/flows/generate-scene-info";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { doc, serverTimestamp } from "firebase/firestore";
+import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 
 const hslToHex = (h: number, s: number, l: number): string => {
   l /= 100;
@@ -44,6 +49,12 @@ type Theme = {
   muted: string;
 };
 
+type BrandingData = {
+  theme: Theme;
+  weather: 'none' | 'rain' | 'snow' | 'fog';
+  terrain: 'none' | 'city' | 'hills' | 'beach';
+}
+
 export default function BrandingClient() {
   const [theme, setTheme] = useState<Theme>({
     background: "224 41% 3%",
@@ -54,20 +65,34 @@ export default function BrandingClient() {
     accent: "300 100% 50%",
     muted: "215 28% 17%",
   });
+  const [weather, setWeather] = useState<BrandingData['weather']>('none');
+  const [terrain, setTerrain] = useState<BrandingData['terrain']>('none');
+  
   const [isMounted, setIsMounted] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const { toast } = useToast();
+  const [aiScenePrompt, setAiScenePrompt] = useState("a rainy night in tokyo");
+  const [isScenePending, startSceneTransition] = useTransition();
 
+  const { toast } = useToast();
+  const firestore = useFirestore();
+
+  const brandingRef = useMemoFirebase(() => (firestore ? doc(firestore, "branding", "live-branding") : null), [firestore]);
+  const { data: brandingData, isLoading: isBrandingLoading } = useDoc<BrandingData>(brandingRef);
+  
   useEffect(() => {
-    const savedTheme = localStorage.getItem("cyber-architect-theme");
+    if (isBrandingLoading) return;
+    const savedTheme = brandingData?.theme || JSON.parse(localStorage.getItem("cyber-architect-theme") || "null");
     if (savedTheme) {
-      setTheme(JSON.parse(savedTheme));
+      setTheme(savedTheme);
     }
+    if (brandingData?.weather) setWeather(brandingData.weather);
+    if (brandingData?.terrain) setTerrain(brandingData.terrain);
+
     setIsMounted(true);
-  }, []);
+  }, [brandingData, isBrandingLoading]);
 
   useEffect(() => {
     if (isMounted) {
@@ -104,11 +129,31 @@ export default function BrandingClient() {
     setTheme((prev) => ({ ...prev, [colorName]: `${h} ${s}% ${l}%` }));
   };
 
-  const saveTheme = () => {
+  const saveSettings = () => {
+    if (!brandingRef) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Firestore is not available.",
+      });
+      return;
+    }
+
+    const dataToSave = {
+      theme,
+      weather,
+      terrain,
+      updatedAt: serverTimestamp()
+    };
+    
+    setDocumentNonBlocking(brandingRef, dataToSave, { merge: true });
+
+    // Also save to local storage as a fallback
     localStorage.setItem("cyber-architect-theme", JSON.stringify(theme));
+    
     toast({
-      title: "Theme Saved",
-      description: "Your new color palette has been applied and saved.",
+      title: "Settings Saved",
+      description: "Your new branding and scene settings have been saved.",
     });
   };
 
@@ -128,7 +173,30 @@ export default function BrandingClient() {
     });
   };
 
-  if (!isMounted) {
+  const handleGenerateScene = () => {
+    if (!aiScenePrompt) return;
+
+    startSceneTransition(async () => {
+      try {
+        const result = await generateSceneInfo({ location: aiScenePrompt });
+        setWeather(result.weather);
+        setTerrain(result.terrain);
+        toast({
+          title: "Scene Updated",
+          description: `Weather set to ${result.weather}, terrain set to ${result.terrain}. Don't forget to save!`,
+        });
+      } catch (error) {
+        console.error("Failed to generate scene info:", error);
+        toast({
+          variant: "destructive",
+          title: "AI Error",
+          description: "Could not generate scene information from the prompt.",
+        });
+      }
+    });
+  };
+
+  if (!isMounted || isBrandingLoading) {
     return null; // Or a loading skeleton
   }
 
@@ -147,13 +215,16 @@ export default function BrandingClient() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-headline font-bold text-glow">
-          System Aesthetics
-        </h1>
-        <p className="text-muted-foreground">
-          Customize the look and feel of your portfolio.
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+            <h1 className="text-3xl font-headline font-bold text-glow">
+            System Aesthetics
+            </h1>
+            <p className="text-muted-foreground">
+            Customize the look and feel of your portfolio.
+            </p>
+        </div>
+        <Button onClick={saveSettings}>Save Settings</Button>
       </div>
 
       <GlassCard className="p-6">
@@ -170,7 +241,7 @@ export default function BrandingClient() {
             {renderColorInput("accent", "Accent")}
         </div>
         <div className="mt-6 flex justify-end">
-          <Button onClick={saveTheme}>Save Palette</Button>
+          <Button onClick={saveSettings}>Save Palette</Button>
         </div>
       </GlassCard>
 
@@ -200,6 +271,62 @@ export default function BrandingClient() {
             <AlertDescription>{error}</AlertDescription>
             </Alert>
         )}
+      </GlassCard>
+
+      <GlassCard className="p-6">
+        <h2 className="text-xl font-headline font-semibold border-b pb-2 mb-4 flex items-center gap-2">
+            <Wand2 className="text-primary"/> Scene Configuration
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+                <Label htmlFor="weather">Weather</Label>
+                <Select value={weather} onValueChange={(v: BrandingData['weather']) => setWeather(v)}>
+                    <SelectTrigger id="weather">
+                        <SelectValue placeholder="Select weather..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="rain">Rain</SelectItem>
+                        <SelectItem value="snow">Snow</SelectItem>
+                        <SelectItem value="fog">Fog</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="terrain">Terrain</Label>
+                 <Select value={terrain} onValueChange={(v: BrandingData['terrain']) => setTerrain(v)}>
+                    <SelectTrigger id="terrain">
+                        <SelectValue placeholder="Select terrain..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="city">City</SelectItem>
+                        <SelectItem value="hills">Hills</SelectItem>
+                        <SelectItem value="beach">Beach</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+        </div>
+
+         <div className="mt-6 border-t pt-6">
+            <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
+                <Bot className="text-primary"/> AI Scene Generator
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Describe a scene to let AI configure the weather and terrain for you.
+            </p>
+             <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                    placeholder="e.g., 'a foggy morning in the mountains'"
+                    value={aiScenePrompt}
+                    onChange={(e) => setAiScenePrompt(e.target.value)}
+                    disabled={isScenePending}
+                />
+                <Button onClick={handleGenerateScene} disabled={isScenePending || !aiScenePrompt}>
+                    {isScenePending ? <Loader2 className="animate-spin" /> : "Generate Scene"}
+                </Button>
+             </div>
+         </div>
       </GlassCard>
     </div>
   );

@@ -133,40 +133,30 @@
           "type": "string",
           "description": "Unique identifier for the Branding entity."
         },
-        "primaryColor": {
-          "type": "string",
-          "description": "The primary color of the website (e.g., Neon Cyan)."
+        "theme": {
+          "type": "object",
+          "description": "The color theme of the website.",
+          "properties": {
+            "background": { "type": "string" },
+            "foreground": { "type": "string" },
+            "card": { "type": "string" },
+            "primary": { "type": "string" },
+            "secondary": { "type": "string" },
+            "accent": { "type": "string" },
+            "muted": { "type": "string" }
+          }
         },
-        "backgroundColor": {
+        "weather": {
           "type": "string",
-          "description": "The background color of the website (e.g., Deep Space)."
+          "enum": ["none", "rain", "snow", "fog"],
+          "description": "The default weather for the 3D background scene."
         },
-        "accentColor": {
+        "terrain": {
           "type": "string",
-          "description": "The accent color of the website (e.g., Neon Purple)."
-        },
-        "bodyFont": {
-          "type": "string",
-          "description": "The font used for the body text (e.g., Inter)."
-        },
-        "headlineFont": {
-          "type": "string",
-          "description": "The font used for headings (e.g., Space Grotesk)."
-        },
-        "codeFont": {
-          "type": "string",
-          "description": "The font used for code snippets (e.g., Fira Code)."
+          "enum": ["none", "city", "hills", "beach"],
+          "description": "The default terrain for the 3D background scene."
         }
-      },
-      "required": [
-        "id",
-        "primaryColor",
-        "backgroundColor",
-        "accentColor",
-        "bodyFont",
-        "headlineFont",
-        "codeFont"
-      ]
+      }
     },
     "Bio": {
       "$schema": "http://json-schema.org/draft-07/schema#",
