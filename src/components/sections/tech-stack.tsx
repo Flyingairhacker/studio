@@ -4,12 +4,22 @@ import { motion } from "framer-motion";
 import GlassCard from "../ui/glass-card";
 import SectionTitle from "../ui/section-title";
 import * as LucideIcons from 'lucide-react';
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { useCollection, useFirestore, useMemoFirebase, useFirebaseServicesAvailable } from "@/firebase";
 import { collection, query, orderBy } from "firebase/firestore";
 import type { TechStack as TechStackType } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
+import { useState, useEffect } from "react";
 
 type LucideIconName = keyof typeof LucideIcons;
+
+const defaultTech: TechStackType[] = [
+    { id: "flutter", name: "Flutter", iconName: "Smartphone", color: "hsl(200, 88%, 57%)" },
+    { id: "dart", name: "Dart", iconName: "Code", color: "hsl(206, 100%, 50%)" },
+    { id: "firebase", name: "Firebase", iconName: "Flame", color: "hsl(33, 99%, 55%)" },
+    { id: "iot", name: "IoT", iconName: "Server", color: "hsl(145, 63%, 49%)" },
+    { id: "btle", name: "Bluetooth LE", iconName: "Bluetooth", color: "hsl(215, 91%, 54%)" },
+    { id: "gcp", name: "Google Cloud", iconName: "Cloud", color: "hsl(22, 92%, 58%)" },
+]
 
 const TechCard = ({ name, iconName, color }: { name: string; iconName: string; color: string }) => {
   const Icon = LucideIcons[iconName as LucideIconName] as React.ElementType || LucideIcons['Code'];
@@ -42,13 +52,31 @@ const TechCard = ({ name, iconName, color }: { name: string; iconName: string; c
 }
 
 const TechStack = () => {
+    const servicesAvailable = useFirebaseServicesAvailable();
     const firestore = useFirestore();
     const techStacksQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
+        if (!firestore || !servicesAvailable) return null;
         return query(collection(firestore, "tech_stacks"), orderBy("name", "asc"));
-    }, [firestore]);
+    }, [firestore, servicesAvailable]);
 
-    const { data: tech, isLoading } = useCollection<TechStackType>(techStacksQuery);
+    const { data: remoteTech, isLoading: isRemoteTechLoading } = useCollection<TechStackType>(techStacksQuery);
+    
+    const [tech, setTech] = useState<TechStackType[]>(defaultTech);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        if (!servicesAvailable) {
+            setTech(defaultTech);
+            setIsLoading(false);
+            return;
+        }
+
+        if (!isRemoteTechLoading) {
+            setTech(remoteTech && remoteTech.length > 0 ? remoteTech : defaultTech);
+            setIsLoading(false);
+        }
+    }, [servicesAvailable, isRemoteTechLoading, remoteTech]);
+
 
     const containerVariants = {
         hidden: {},

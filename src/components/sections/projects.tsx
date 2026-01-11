@@ -4,20 +4,38 @@ import { motion } from "framer-motion";
 import ProjectCard from "../ui/project-card";
 import SectionTitle from "../ui/section-title";
 import type { Project } from "@/lib/types";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Skeleton } from "../ui/skeleton";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { useCollection, useFirestore, useMemoFirebase, useFirebaseServicesAvailable } from "@/firebase";
 import { collection, query, orderBy } from "firebase/firestore";
+import { localProjects } from "@/lib/data";
 
 const Projects = () => {
+  const servicesAvailable = useFirebaseServicesAvailable();
   const firestore = useFirestore();
 
   const projectsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, "projects"), orderBy("title", "asc"));
-  }, [firestore]);
+    if (!firestore || !servicesAvailable) return null;
+    return query(collection(firestore, "projects"), orderBy("createdAt", "desc"));
+  }, [firestore, servicesAvailable]);
 
-  const { data: projects, isLoading } = useCollection<Project>(projectsQuery);
+  const { data: remoteProjects, isLoading: isRemoteLoading } = useCollection<Project>(projectsQuery);
+
+  const [projects, setProjects] = useState<Project[]>(localProjects);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!servicesAvailable) {
+        setProjects(localProjects);
+        setIsLoading(false);
+        return;
+    }
+
+    if (!isRemoteLoading) {
+        setProjects(remoteProjects && remoteProjects.length > 0 ? remoteProjects : localProjects);
+        setIsLoading(false);
+    }
+  }, [servicesAvailable, isRemoteLoading, remoteProjects]);
 
   const containerVariants = {
     hidden: {},

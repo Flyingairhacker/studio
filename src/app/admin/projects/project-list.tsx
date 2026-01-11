@@ -53,7 +53,7 @@ export default function ProjectList() {
 
     const projectsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
-        return query(collection(firestore, "projects"), orderBy("title", "asc"));
+        return query(collection(firestore, "projects"), orderBy("createdAt", "desc"));
     }, [firestore]);
 
     const { data: projects, isLoading } = useCollection<Project>(projectsQuery);

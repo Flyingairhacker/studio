@@ -2,11 +2,12 @@
 
 import { Button } from "../ui/button";
 import { ArrowDown, Code } from "lucide-react";
-import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
+import { useDoc, useFirestore, useMemoFirebase, useFirebaseServicesAvailable } from "@/firebase";
 import type { Bio } from "@/lib/types";
 import { doc } from "firebase/firestore";
 import { Skeleton } from "../ui/skeleton";
 import ModelViewer from "../3d/model-viewer";
+import { useEffect, useState } from "react";
 
 const AnimatedText = ({ text }: { text: string }) => {
   return (
@@ -24,10 +25,37 @@ const AnimatedText = ({ text }: { text: string }) => {
   );
 };
 
+const defaultBio: Bio = {
+    id: "local-bio",
+    name: "Cyber Architect",
+    title: "Flutter & IoT Systems Architect",
+    description: "Specializing in creating robust, scalable, and intelligent systems by bridging the gap between embedded hardware and high-performance mobile applications.",
+    avatarUrl: "",
+    modelUrl: "https://sketchfab.com/models/0c74ca18fa6a4d05be9fe6ffa2206db8/embed"
+};
+
+
 const Hero = () => {
+  const servicesAvailable = useFirebaseServicesAvailable();
   const firestore = useFirestore();
-  const bioRef = useMemoFirebase(() => firestore ? doc(firestore, "bio", "main-bio") : null, [firestore]);
-  const { data: bio, isLoading } = useDoc<Bio>(bioRef);
+  const bioRef = useMemoFirebase(() => (firestore && servicesAvailable) ? doc(firestore, "bio", "main-bio") : null, [firestore, servicesAvailable]);
+  const { data: remoteBio, isLoading: isRemoteBioLoading } = useDoc<Bio>(bioRef);
+
+  const [bio, setBio] = useState<Bio>(defaultBio);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!servicesAvailable) {
+        setBio(defaultBio);
+        setIsLoading(false);
+        return;
+    }
+    
+    if (!isRemoteBioLoading) {
+        setBio(remoteBio || defaultBio);
+        setIsLoading(false);
+    }
+  }, [servicesAvailable, isRemoteBioLoading, remoteBio]);
 
   return (
     <section className="relative container mx-auto flex min-h-[calc(100vh-80px)] items-center px-4 py-20 md:px-6">

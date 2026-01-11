@@ -18,9 +18,10 @@ import SectionTitle from "../ui/section-title";
 import GlassCard from "../ui/glass-card";
 import { useToast } from "@/hooks/use-toast";
 import { saveMessage } from "@/app/contact/actions";
-import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
+import { useDoc, useFirestore, useMemoFirebase, useFirebaseServicesAvailable } from "@/firebase";
 import { doc } from "firebase/firestore";
 import type { Bio } from "@/lib/types";
+import { useEffect, useState } from "react";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -28,11 +29,33 @@ const formSchema = z.object({
   message: z.string().min(10, { message: "Message must be at least 10 characters." }),
 });
 
+const defaultBio: Partial<Bio> = {
+    contactTitle: "Request Intel",
+    contactSubtitle: "Open a secure channel for inquiries, collaborations, or to discuss a project. All transmissions are monitored.",
+};
+
 const ContactClient = () => {
   const { toast } = useToast();
+  const servicesAvailable = useFirebaseServicesAvailable();
   const firestore = useFirestore();
-  const bioRef = useMemoFirebase(() => firestore ? doc(firestore, "bio", "main-bio") : null, [firestore]);
-  const { data: bio, isLoading } = useDoc<Bio>(bioRef);
+  const bioRef = useMemoFirebase(() => firestore && servicesAvailable ? doc(firestore, "bio", "main-bio") : null, [firestore, servicesAvailable]);
+  const { data: remoteBio, isLoading: isRemoteBioLoading } = useDoc<Bio>(bioRef);
+  
+  const [bio, setBio] = useState<Partial<Bio>>(defaultBio);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!servicesAvailable) {
+        setBio(defaultBio);
+        setIsLoading(false);
+        return;
+    }
+    
+    if (!isRemoteBioLoading) {
+        setBio(remoteBio || defaultBio);
+        setIsLoading(false);
+    }
+  }, [servicesAvailable, isRemoteBioLoading, remoteBio]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -44,6 +67,15 @@ const ContactClient = () => {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!servicesAvailable) {
+        toast({
+            variant: "destructive",
+            title: "Offline Mode",
+            description: "Contact form is disabled. Please configure Firebase to enable it.",
+        });
+        return;
+    }
+    
     const result = await saveMessage(values);
 
     if (result.error) {
@@ -115,7 +147,7 @@ const ContactClient = () => {
                 </FormItem>
               )}
             />
-            <Button type="submit" size="lg" className="w-full text-lg" disabled={form.formState.isSubmitting}>
+            <Button type="submit" size="lg" className="w-full text-lg" disabled={form.formState.isSubmitting || isLoading}>
               {form.formState.isSubmitting ? "Transmitting..." : "Send Transmission"}
             </Button>
           </form>
