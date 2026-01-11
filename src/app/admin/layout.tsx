@@ -2,7 +2,6 @@
 
 import AdminSidebar from '@/components/layout/admin-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export default function AdminLayout({
   children,
@@ -10,13 +9,11 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <FirebaseClientProvider>
-      <SidebarProvider>
-        <AdminSidebar />
-        <SidebarInset className="bg-background pattern-bg">
-          <div className="p-4 sm:p-6 md:p-8">{children}</div>
-        </SidebarInset>
-      </SidebarProvider>
-    </FirebaseClientProvider>
+    <SidebarProvider>
+      <AdminSidebar />
+      <SidebarInset className="bg-background pattern-bg">
+        <div className="p-4 sm:p-6 md:p-8">{children}</div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

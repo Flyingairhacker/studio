@@ -3,15 +3,13 @@
 
 import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
 
-interface BrandingData {
+interface BackgroundSceneProps {
   weather: 'none' | 'rain' | 'snow' | 'fog' | 'storm' | 'sunny' | 'dusk' | 'night';
   terrain: 'none' | 'city' | 'hills' | 'beach' | 'forest' | 'desert' | 'mountains';
 }
 
-const BackgroundScene = () => {
+const BackgroundScene = ({ weather, terrain }: BackgroundSceneProps) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const weatherParticlesRef = useRef<THREE.Points | null>(null);
@@ -19,13 +17,6 @@ const BackgroundScene = () => {
   const vehiclesGroupRef = useRef<THREE.Group | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-
-  const firestore = useFirestore();
-  const brandingRef = useMemoFirebase(() => (firestore ? doc(firestore, "branding", "live-branding") : null), [firestore]);
-  const { data: branding } = useDoc<BrandingData>(brandingRef);
-
-  const weather = branding?.weather ?? 'none';
-  const terrain = branding?.terrain ?? 'none';
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -105,9 +96,11 @@ const BackgroundScene = () => {
 
     // Handle resize
     const onWindowResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      if (cameraRef.current && rendererRef.current) {
+        cameraRef.current.aspect = window.innerWidth / window.innerHeight;
+        cameraRef.current.updateProjectionMatrix();
+        rendererRef.current.setSize(window.innerWidth, window.innerHeight);
+      }
     };
     window.addEventListener('resize', onWindowResize);
 
@@ -137,17 +130,16 @@ const BackgroundScene = () => {
       }
 
       // Animate vehicles
-      if (vehiclesGroupRef.current) {
-          vehiclesGroupRef.current.children.forEach((vehicle, i) => {
+      if (vehiclesGroupRef.current && cameraRef.current) {
+          vehiclesGroupRef.current.children.forEach((vehicle) => {
               const speed = vehicle.userData.speed || 0.1;
               vehicle.position.z += speed;
-              if (vehicle.position.z > camera.position.z) {
+              if (vehicle.position.z > cameraRef.current.position.z) {
                   vehicle.position.z = -200;
                   vehicle.position.x = (Math.random() - 0.5) * 100;
               }
           });
       }
-
 
       // Update lights position based on mouse
       const cameraOffset = new THREE.Vector3(mouse.x * 5, mouse.y * 5, camera.position.z + 2);
@@ -155,11 +147,12 @@ const BackgroundScene = () => {
       purpleLight.position.lerp(cameraOffset.clone().setX(mouse.x * 10), 0.05);
 
       // Subtle camera movement
-      camera.position.x += (mouse.x * 2 - camera.position.x) * 0.02;
-      camera.position.y += (mouse.y * 2 - camera.position.y) * 0.02;
-      camera.lookAt(scene.position);
-
-      renderer.render(scene, camera);
+      if (cameraRef.current && sceneRef.current) {
+        cameraRef.current.position.x += (mouse.x * 2 - cameraRef.current.position.x) * 0.02;
+        cameraRef.current.position.y += (mouse.y * 2 - cameraRef.current.position.y) * 0.02;
+        cameraRef.current.lookAt(sceneRef.current.position);
+        renderer.render(sceneRef.current, cameraRef.current);
+      }
       requestAnimationFrame(animate);
     };
     animate();
@@ -172,10 +165,11 @@ const BackgroundScene = () => {
         scene.traverse((object) => {
             if (object instanceof THREE.Mesh || object instanceof THREE.Points) {
                 object.geometry.dispose();
-                if (Array.isArray(object.material)) {
-                    object.material.forEach(material => material.dispose());
-                } else if(object.material) {
-                    object.material.dispose();
+                const material = object.material as THREE.Material | THREE.Material[];
+                if (Array.isArray(material)) {
+                    material.forEach(mat => mat.dispose());
+                } else if(material) {
+                    material.dispose();
                 }
             }
         });
@@ -202,14 +196,13 @@ const BackgroundScene = () => {
     // Time of day
     if (weather === 'sunny') {
         currentRenderer.setClearColor(0x87CEEB, 1);
-        currentScene.fog.color.set(0x87CEEB);
+        if (currentScene.fog) currentScene.fog.color.set(0x87CEEB);
     } else if (weather === 'dusk') {
         currentRenderer.setClearColor(0x23192d, 1);
-        currentScene.fog.color.set(0x23192d);
+        if (currentScene.fog) currentScene.fog.color.set(0x23192d);
     } else {
-        currentScene.fog.color.set(0x040306);
+        if (currentScene.fog) currentScene.fog.color.set(0x040306);
     }
-
 
     if (weatherParticlesRef.current) {
         if (weather === 'none' || weather === 'sunny' || weather === 'dusk' || weather === 'night') {
@@ -250,7 +243,12 @@ const BackgroundScene = () => {
         });
 
         if (weatherParticlesRef.current.geometry) weatherParticlesRef.current.geometry.dispose();
-        if (weatherParticlesRef.current.material) (weatherParticlesRef.current.material as THREE.Material).dispose();
+        const currentMaterial = weatherParticlesRef.current.material as THREE.Material | THREE.Material[];
+        if (Array.isArray(currentMaterial)) {
+            currentMaterial.forEach(mat => mat.dispose());
+        } else if (currentMaterial) {
+            currentMaterial.dispose();
+        }
 
         weatherParticlesRef.current.geometry = geometry;
         weatherParticlesRef.current.material = material;
@@ -265,8 +263,9 @@ const BackgroundScene = () => {
         terrainGroupRef.current.remove(obj);
         if (obj instanceof THREE.Mesh) {
             obj.geometry.dispose();
-            if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
-            else obj.material.dispose();
+            const material = obj.material as THREE.Material | THREE.Material[];
+            if (Array.isArray(material)) material.forEach(m => m.dispose());
+            else material.dispose();
         }
       }
     }
