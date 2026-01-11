@@ -57,3 +57,19 @@ export interface Bio {
     contactSubtitle?: string;
     modelUrl?: string;
 }
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string;
+  imageUrl: string;
+  imageHint?: string;
+  publishedAt: Timestamp | Date | string;
+  authorName: string;
+  tags: string[];
+  isPublished: boolean;
+  createdAt?: Timestamp | Date | string;
+  updatedAt?: Timestamp | Date | string;
+}

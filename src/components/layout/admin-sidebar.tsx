@@ -12,7 +12,7 @@ import {
   SidebarContent,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Fingerprint, LayoutGrid, Inbox, Palette, LogOut, Bot, UserCircle, Cpu } from "lucide-react";
+import { Fingerprint, LayoutGrid, Inbox, Palette, LogOut, Bot, UserCircle, Cpu, Rss } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
@@ -21,6 +21,7 @@ const menuItems = [
   { href: "/admin/projects", label: "Projects", icon: LayoutGrid },
   { href: "/admin/tech-stacks", label: "Tech Stacks", icon: Cpu },
   { href: "/admin/bio", label: "Bio", icon: UserCircle },
+  { href: "/admin/blog", label: "Blog", icon: Rss },
   { href: "/admin/inbox", label: "Inbox", icon: Inbox },
   { href: "/admin/branding", label: "Branding", icon: Palette },
   { href: "/admin/ai-tools", label: "AI Tools", icon: Bot },
