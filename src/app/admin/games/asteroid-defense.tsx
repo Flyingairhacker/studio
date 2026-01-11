@@ -11,38 +11,36 @@ const WORDS = [
   'malware', 'rootkit', 'phishing', 'trojan', 'worm', 'zombie', 'botnet',
 ];
 
-class Asteroid {
-  x: number;
-  y: number;
-  word: string;
-  speed: number;
-  p5: P5CanvasInstance;
-
-  constructor(p5: P5CanvasInstance, word: string) {
-    this.p5 = p5;
-    this.x = p5.random(p5.width * 0.1, p5.width * 0.9);
-    this.y = 0;
-    this.word = word;
-    this.speed = p5.random(0.5, 2);
-  }
-
-  update() {
-    this.y += this.speed;
-  }
-
-  draw() {
-    this.p5.fill(255);
-    this.p5.textAlign(this.p5.CENTER);
-    this.p5.textSize(16);
-    this.p5.text(this.word, this.x, this.y);
-  }
-
-  isOffScreen() {
-    return this.y > this.p5.height;
-  }
-}
-
 function sketch(p5: P5CanvasInstance) {
+  class Asteroid {
+    x: number;
+    y: number;
+    word: string;
+    speed: number;
+
+    constructor(word: string) {
+      this.x = p5.random(p5.width * 0.1, p5.width * 0.9);
+      this.y = 0;
+      this.word = word;
+      this.speed = p5.random(0.5, 2);
+    }
+
+    update() {
+      this.y += this.speed;
+    }
+
+    draw() {
+      p5.fill(255);
+      p5.textAlign(p5.CENTER);
+      p5.textSize(16);
+      p5.text(this.word, this.x, this.y);
+    }
+
+    isOffScreen() {
+      return this.y > p5.height;
+    }
+  }
+
   let asteroids: Asteroid[] = [];
   let score = 0;
   let lives = 3;
@@ -95,7 +93,7 @@ function sketch(p5: P5CanvasInstance) {
     // Add new asteroids periodically
     if (p5.frameCount % 90 === 0) {
       const newWord = p5.random(WORDS);
-      asteroids.push(new Asteroid(p5, newWord));
+      asteroids.push(new Asteroid(newWord));
     }
 
     // Update and draw asteroids
