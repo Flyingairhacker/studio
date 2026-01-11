@@ -1,5 +1,4 @@
 
-import { generateSceneInfo, type GenerateSceneInfoOutput } from '@/ai/flows/generate-scene-info';
 import BackgroundScene from '@/components/3d/background-scene';
 import ContactSection from '@/components/sections/contact';
 import Footer from '@/components/sections/footer';
@@ -8,15 +7,32 @@ import Hero from '@/components/sections/hero';
 import Projects from '@/components/sections/projects';
 import TechStack from '@/components/sections/tech-stack';
 import GamesSection from '@/components/sections/games';
+import { getFirebaseAdmin } from '@/lib/firebase/server-app';
+import type { GenerateSceneInfoOutput } from '@/ai/flows/generate-scene-info';
+
+async function getBrandingData(): Promise<GenerateSceneInfoOutput> {
+  try {
+    const { db } = getFirebaseAdmin();
+    const brandingDoc = await db.collection('branding').doc('live-branding').get();
+    
+    if (brandingDoc.exists) {
+      const data = brandingDoc.data();
+      return {
+        weather: data?.weather || 'none',
+        terrain: data?.terrain || 'none',
+      };
+    }
+  } catch (error) {
+    console.error("Failed to fetch branding data from Firestore:", error);
+  }
+  
+  // Return a default if Firestore fails
+  return { weather: 'none', terrain: 'none' };
+}
+
 
 export default async function Home() {
-  let sceneInfo: GenerateSceneInfoOutput = { weather: 'none', terrain: 'none' };
-  try {
-    // Generate a scene based on a generic prompt to get variety on each load.
-    sceneInfo = await generateSceneInfo({ location: "the current location" });
-  } catch (e) {
-    console.error("Failed to generate scene info, using default.", e);
-  }
+  const sceneInfo = await getBrandingData();
 
   return (
     <>
