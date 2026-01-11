@@ -68,7 +68,6 @@ export interface BlogPost {
   imageHint?: string;
   publishedAt: Timestamp | Date | string;
   authorName: string;
-  tags: string[];
   isPublished: boolean;
   createdAt?: Timestamp | Date | string;
   updatedAt?: Timestamp | Date | string;

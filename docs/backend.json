@@ -243,6 +243,10 @@
         "authorName": {
           "type": "string",
           "description": "The name of the post's author."
+        },
+        "isPublished": {
+          "type": "boolean",
+          "description": "Indicates if the blog post is publicly visible."
         }
       },
       "required": [
@@ -252,7 +256,8 @@
         "content",
         "excerpt",
         "publishedAt",
-        "authorName"
+        "authorName",
+        "isPublished"
       ]
     }
   },
