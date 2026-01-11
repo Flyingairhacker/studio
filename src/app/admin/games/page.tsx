@@ -2,6 +2,7 @@ import GlassCard from '@/components/ui/glass-card';
 import { Gamepad2 } from 'lucide-react';
 import SequenceBreaker from './sequence-breaker';
 import CodeCracker from './code-cracker';
+import GlitchHunt from './glitch-hunt';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function GamesPage() {
@@ -18,9 +19,10 @@ export default function GamesPage() {
 
       <GlassCard className="p-6">
         <Tabs defaultValue="sequence-breaker">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="sequence-breaker">Sequence Breaker</TabsTrigger>
             <TabsTrigger value="code-cracker">Code Cracker</TabsTrigger>
+            <TabsTrigger value="glitch-hunt">Glitch Hunt</TabsTrigger>
           </TabsList>
           <TabsContent value="sequence-breaker" className="mt-6">
              <h2 className="text-xl font-headline font-semibold border-b pb-2 mb-4 flex items-center gap-2">
@@ -40,6 +42,15 @@ export default function GamesPage() {
               Crack the 4-digit secret code. After each guess, you'll see how many digits are in the correct position (Hits) and how many are correct but in the wrong position (Blows).
             </p>
             <CodeCracker />
+          </TabsContent>
+          <TabsContent value="glitch-hunt" className="mt-6">
+             <h2 className="text-xl font-headline font-semibold border-b pb-2 mb-4 flex items-center gap-2">
+                <Gamepad2 className="text-primary" /> Glitch Hunt
+            </h2>
+             <p className="text-sm text-muted-foreground mb-4">
+                A glitch is causing rapid fluctuations in the system grid. Click the unstable cells before they disappear to stabilize the system and score points.
+            </p>
+            <GlitchHunt />
           </TabsContent>
         </Tabs>
       </GlassCard>

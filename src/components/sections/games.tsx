@@ -5,6 +5,7 @@ import { doc } from "firebase/firestore";
 import type { Bio } from "@/lib/types";
 import SequenceBreaker from "@/app/admin/games/sequence-breaker";
 import CodeCracker from "@/app/admin/games/code-cracker";
+import GlitchHunt from "@/app/admin/games/glitch-hunt";
 import SectionTitle from "../ui/section-title";
 import GlassCard from "../ui/glass-card";
 import { useState, useEffect } from "react";
@@ -59,9 +60,10 @@ export default function GamesSection() {
             />
             <GlassCard className="max-w-3xl mx-auto mt-16 p-8">
                  <Tabs defaultValue="sequence-breaker">
-                    <TabsList className="grid w-full grid-cols-2">
+                    <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="sequence-breaker">Sequence Breaker</TabsTrigger>
                         <TabsTrigger value="code-cracker">Code Cracker</TabsTrigger>
+                        <TabsTrigger value="glitch-hunt">Glitch Hunt</TabsTrigger>
                     </TabsList>
                     <TabsContent value="sequence-breaker" className="mt-6">
                         <p className="text-sm text-center text-muted-foreground mb-4">
@@ -75,6 +77,12 @@ export default function GamesSection() {
                             Crack the 4-digit secret code. After each guess, you'll see how many digits are in the correct position (Hits) and how many are correct but in the wrong position (Blows).
                         </p>
                         <CodeCracker />
+                    </TabsContent>
+                    <TabsContent value="glitch-hunt" className="mt-6">
+                        <p className="text-sm text-center text-muted-foreground mb-4">
+                            Click the unstable cells before they disappear to score points.
+                        </p>
+                        <GlitchHunt />
                     </TabsContent>
                 </Tabs>
             </GlassCard>
