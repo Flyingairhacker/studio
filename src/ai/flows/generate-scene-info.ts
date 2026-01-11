@@ -1,0 +1,66 @@
+'use server';
+
+/**
+ * @fileOverview AI-powered scene information generator.
+ * 
+ * - generateSceneInfo - A function that generates weather and terrain info from a text prompt.
+ * - GenerateSceneInfoInput - The input type for the generateSceneInfo function.
+ * - GenerateSceneInfoOutput - The return type for the generateSceneInfo function.
+ */
+
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
+
+const GenerateSceneInfoInputSchema = z.object({
+  location: z
+    .string()
+    .describe('A text description of a location and time, e.g., "a foggy morning in the mountains" or "a rainy night in Tokyo".'),
+});
+export type GenerateSceneInfoInput = z.infer<
+  typeof GenerateSceneInfoInputSchema
+>;
+
+const GenerateSceneInfoOutputSchema = z.object({
+  weather: z.enum(['none', 'rain', 'snow', 'fog']).describe('The dominant weather condition in the scene.'),
+  terrain: z.enum(['none', 'city', 'hills', 'beach']).describe('The dominant terrain type of the scene.'),
+});
+export type GenerateSceneInfoOutput = z.infer<
+  typeof GenerateSceneInfoOutputSchema
+>;
+
+export async function generateSceneInfo(
+  input: GenerateSceneInfoInput
+): Promise<GenerateSceneInfoOutput> {
+  return generateSceneInfoFlow(input);
+}
+
+const prompt = ai.definePrompt({
+  name: 'generateSceneInfoPrompt',
+  input: {schema: GenerateSceneInfoInputSchema},
+  output: {schema: GenerateSceneInfoOutputSchema},
+  prompt: `You are a scene analysis expert. Based on the user's description of a location, determine the primary weather and terrain.
+
+  - If rain or storm is mentioned, set weather to 'rain'.
+  - If snow or blizzard is mentioned, set weather to 'snow'.
+  - If fog or mist is mentioned, set weather to 'fog'.
+  - Otherwise, set weather to 'none'.
+
+  - If city, urban, or buildings are mentioned, set terrain to 'city'.
+  - If hills, mountains, or forest are mentioned, set terrain to 'hills'.
+  - If beach, coast, or ocean are mentioned, set terrain to 'beach'.
+  - Otherwise, set terrain to 'none'.
+
+  Description: {{{location}}}`,
+});
+
+const generateSceneInfoFlow = ai.defineFlow(
+  {
+    name: 'generateSceneInfoFlow',
+    inputSchema: GenerateSceneInfoInputSchema,
+    outputSchema: GenerateSceneInfoOutputSchema,
+  },
+  async input => {
+    const {output} = await prompt(input);
+    return output!;
+  }
+);
