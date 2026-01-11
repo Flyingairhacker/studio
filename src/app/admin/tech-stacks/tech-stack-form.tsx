@@ -3,13 +3,14 @@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useTransition, useEffect } from "react";
+import { useTransition, useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import type { TechStack } from "@/lib/types";
 import { useFirestore } from "@/firebase";
 import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { collection, doc, serverTimestamp } from "firebase/firestore";
 import * as LucideIcons from 'lucide-react';
+import { Check, ChevronsUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,13 +25,23 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
-const iconNames = Object.keys(LucideIcons).filter(k => k !== 'createLucideIcon' && k !== 'icons');
+const iconNames = Object.keys(LucideIcons).filter(k => k !== 'createLucideIcon' && k !== 'icons' && k !== 'default');
 
 const techStackSchema = z.object({
     name: z.string().min(1, "Name is required"),
     iconName: z.string().refine(val => iconNames.includes(val), { message: "Invalid icon name." }),
-    color: z.string().regex(/^hsl\(\s*\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%\s*\)$/, "Must be a valid HSL color string."),
+    color: z.string().regex(/^hsl\(\s*\d{1,3},\s*\d{1,3}%\s*,\s*\d{1,3}%\s*\)$/, "Must be a valid HSL color string."),
 });
 
 type TechStackFormData = z.infer<typeof techStackSchema>;
@@ -43,6 +54,7 @@ interface TechStackFormProps {
 }
 
 const hslStringToHex = (hsl: string): string => {
+    if (!hsl) return '#ffffff';
     const match = /hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/.exec(hsl);
     if (!match) return "#ffffff";
     let h = parseInt(match[1]);
@@ -91,6 +103,7 @@ const hexToHslString = (hex: string): string => {
 
 export function TechStackForm({ techStack, children, onClose, isOpen }: TechStackFormProps) {
     const [isPending, startTransition] = useTransition();
+    const [popoverOpen, setPopoverOpen] = useState(false);
     const { toast } = useToast();
     const firestore = useFirestore();
 
@@ -104,12 +117,16 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
     });
 
     useEffect(() => {
-        if (techStack) {
+        if (isOpen && techStack) {
             setValue('name', techStack.name);
             setValue('iconName', techStack.iconName);
             setValue('color', techStack.color);
+        } else if (isOpen && !techStack) {
+            setValue('name', '');
+            setValue('iconName', 'Code');
+            setValue('color', 'hsl(210, 40%, 98%)');
         }
-    }, [techStack, setValue]);
+    }, [techStack, isOpen, setValue]);
 
     const processSubmit = async (data: TechStackFormData) => {
         if (!firestore) {
@@ -164,8 +181,56 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
                         {errors.name && <p className="col-span-4 text-sm text-destructive text-right">{errors.name.message}</p>}
                     </div>
                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="iconName" className="text-right">Icon Name</Label>
-                        <Input id="iconName" {...register("iconName")} placeholder="e.g. 'Smartphone'" className="col-span-3" />
+                        <Label htmlFor="iconName" className="text-right">Icon</Label>
+                        <Controller
+                            name="iconName"
+                            control={control}
+                            render={({ field }) => (
+                                <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={popoverOpen}
+                                            className="col-span-3 justify-between"
+                                        >
+                                            {field.value
+                                                ? iconNames.find((name) => name === field.value)
+                                                : "Select icon..."}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[375px] p-0">
+                                        <Command>
+                                            <CommandInput placeholder="Search icon..." />
+                                            <CommandList>
+                                                <CommandEmpty>No icon found.</CommandEmpty>
+                                                <CommandGroup>
+                                                    {iconNames.map((name) => (
+                                                        <CommandItem
+                                                            key={name}
+                                                            value={name}
+                                                            onSelect={(currentValue) => {
+                                                                setValue("iconName", currentValue === field.value ? "" : currentValue, { shouldValidate: true });
+                                                                setPopoverOpen(false);
+                                                            }}
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    "mr-2 h-4 w-4",
+                                                                    field.value === name ? "opacity-100" : "opacity-0"
+                                                                )}
+                                                            />
+                                                            {name}
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
+                            )}
+                        />
                         {errors.iconName && <p className="col-span-4 text-sm text-destructive text-right">{errors.iconName.message}</p>}
                     </div>
                      <div className="grid grid-cols-4 items-center gap-4">
@@ -176,15 +241,15 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
                             render={({ field }) => (
                                 <div className="col-span-3 flex items-center gap-2">
                                     <Input
-                                        id="color"
+                                        id="color-picker"
                                         type="color"
                                         value={hslStringToHex(field.value)}
                                         onChange={(e) => field.onChange(hexToHslString(e.target.value))}
                                         className="h-10 p-1"
                                     />
-                                    <Input 
-                                      value={field.value}
-                                      onChange={e => field.onChange(e.target.value)}
+                                    <Input
+                                      id="color"
+                                      {...register("color")}
                                       className="font-mono"
                                       placeholder="hsl(210, 40%, 98%)"
                                     />
