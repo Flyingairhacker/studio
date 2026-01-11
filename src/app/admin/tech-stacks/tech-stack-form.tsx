@@ -11,7 +11,7 @@ import { useFirestore } from "@/firebase";
 import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { collection, doc, serverTimestamp } from "firebase/firestore";
 import * as LucideIcons from 'lucide-react';
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { iconNames } from "@/lib/lucide-icon-names";
 
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,7 @@ import { cn } from "@/lib/utils";
 
 const techStackSchema = z.object({
     name: z.string().min(1, "Name is required"),
-    iconName: z.string().refine(val => iconNames.includes(val), { message: "Invalid icon name." }),
+    iconName: z.string().refine(val => iconNames.includes(val as any), { message: "Invalid icon name." }),
     color: z.string().regex(/^\d{1,3}\s\d{1,3}%\s\d{1,3}%$/, "Must be a valid HSL color string (e.g., '210 40% 98%')."),
 });
 
@@ -108,7 +108,7 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
     const { toast } = useToast();
     const firestore = useFirestore();
 
-    const { register, handleSubmit, formState: { errors }, control, reset, watch } = useForm<TechStackFormData>({
+    const { register, handleSubmit, formState: { errors }, control, reset, watch, setValue } = useForm<TechStackFormData>({
         resolver: zodResolver(techStackSchema),
         defaultValues: {
             name: "",
@@ -189,69 +189,76 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
                         {techStack ? "Update the details for this technology." : "Add a new technology to your stack."}
                     </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit(processSubmit)} className="space-y-4 py-4">
+                <form onSubmit={handleSubmit(processSubmit)} className="space-y-6 py-4">
                     <div className="space-y-2">
                         <Label htmlFor="name">Name</Label>
                         <Input id="name" {...register("name")} />
                         {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
                     </div>
-                     <div className="space-y-2">
+
+                    <div className="space-y-2">
                         <Label htmlFor="iconName">Icon</Label>
-                        <Controller
-                            name="iconName"
-                            control={control}
-                            render={({ field }) => (
-                                <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            role="combobox"
-                                            aria-expanded={popoverOpen}
-                                            className="w-full justify-between"
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                {IconPreview && <IconPreview className="h-4 w-4" />}
-                                                {field.value ? iconNames.find(name => name.toLowerCase() === field.value.toLowerCase()) : "Select icon..."}
-                                            </div>
-                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                        <Command>
-                                            <CommandInput placeholder="Search icon..." />
-                                            <CommandList>
-                                                <CommandEmpty>No icon found.</CommandEmpty>
-                                                <CommandGroup>
-                                                    {iconNames.map((name) => (
-                                                    <CommandItem
-                                                        key={name}
-                                                        value={name}
-                                                        onSelect={(currentValue) => {
-                                                            const iconName = iconNames.find(n => n.toLowerCase() === currentValue.toLowerCase());
-                                                            if (iconName) {
-                                                                field.onChange(iconName);
-                                                            }
-                                                            setPopoverOpen(false);
-                                                        }}
-                                                    >
-                                                        <Check
-                                                            className={cn(
-                                                                "mr-2 h-4 w-4",
-                                                                field.value && field.value.toLowerCase() === name.toLowerCase() ? "opacity-100" : "opacity-0"
-                                                            )}
-                                                        />
-                                                        {name}
-                                                    </CommandItem>
-                                                    ))}
-                                                </CommandGroup>
-                                            </CommandList>
-                                        </Command>
-                                    </PopoverContent>
-                                </Popover>
-                            )}
-                        />
+                        <div className="flex items-center gap-2">
+                            {IconPreview && <IconPreview className="h-6 w-6 text-muted-foreground" />}
+                             <Controller
+                                name="iconName"
+                                control={control}
+                                render={({ field }) => (
+                                    <div className="relative w-full">
+                                        <Input
+                                            {...field}
+                                            placeholder="Search for an icon..."
+                                            className="pr-10"
+                                        />
+                                        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                                                >
+                                                    <Search className="h-4 w-4" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                                <Command>
+                                                    <CommandInput placeholder="Search icon..." />
+                                                    <CommandList>
+                                                        <CommandEmpty>No icon found.</CommandEmpty>
+                                                        <CommandGroup>
+                                                            {iconNames.map((name) => (
+                                                            <CommandItem
+                                                                key={name}
+                                                                value={name}
+                                                                onSelect={(currentValue) => {
+                                                                    const iconName = iconNames.find(n => n.toLowerCase() === currentValue.toLowerCase());
+                                                                    if (iconName) {
+                                                                        setValue("iconName", iconName, { shouldValidate: true });
+                                                                    }
+                                                                    setPopoverOpen(false);
+                                                                }}
+                                                            >
+                                                                <Check
+                                                                    className={cn(
+                                                                        "mr-2 h-4 w-4",
+                                                                        field.value && field.value.toLowerCase() === name.toLowerCase() ? "opacity-100" : "opacity-0"
+                                                                    )}
+                                                                />
+                                                                {name}
+                                                            </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+                                )}
+                            />
+                        </div>
                         {errors.iconName && <p className="text-sm text-destructive">{errors.iconName.message}</p>}
                     </div>
+
                      <div className="space-y-2">
                         <Label htmlFor="color">Color</Label>
                          <Controller
@@ -279,7 +286,7 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
                         {errors.color && <p className="text-sm text-destructive">{errors.color.message}</p>}
                     </div>
                     
-                    <DialogFooter>
+                    <DialogFooter className="pt-4">
                         <DialogClose asChild>
                            <Button type="button" variant="ghost">Cancel</Button>
                         </DialogClose>
