@@ -200,49 +200,49 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
                             render={({ field }) => (
                                 <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                                     <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            role="combobox"
-                                            aria-expanded={popoverOpen}
-                                            className="col-span-3 justify-between"
-                                        >
-                                            {field.value
-                                                ? iconNames.find((name) => name === field.value)
-                                                : "Select icon..."}
-                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                        </Button>
+                                        <div className="col-span-3" role="combobox">
+                                            <Command shouldFilter={false} className="overflow-visible bg-transparent">
+                                                <div className="relative">
+                                                     <CommandInput 
+                                                        value={field.value}
+                                                        onValueChange={field.onChange}
+                                                        placeholder="Search icon..."
+                                                        className="w-full"
+                                                     />
+                                                     <ChevronsUpDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 shrink-0 opacity-50" />
+                                                </div>
+                                                <CommandList className="absolute z-10 w-[--radix-popover-trigger-width] top-full mt-1 rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none">
+                                                    <CommandEmpty>No icon found.</CommandEmpty>
+                                                    <CommandGroup>
+                                                        {iconNames
+                                                            .filter(name => name.toLowerCase().includes((field.value || '').toLowerCase()))
+                                                            .slice(0, 100) // Limit results for performance
+                                                            .map((name) => (
+                                                            <CommandItem
+                                                                key={name}
+                                                                value={name}
+                                                                onSelect={(currentValue) => {
+                                                                    const iconName = iconNames.find(n => n.toLowerCase() === currentValue.toLowerCase());
+                                                                    if (iconName) {
+                                                                        field.onChange(iconName);
+                                                                    }
+                                                                    setPopoverOpen(false);
+                                                                }}
+                                                            >
+                                                                <Check
+                                                                    className={cn(
+                                                                        "mr-2 h-4 w-4",
+                                                                        field.value === name ? "opacity-100" : "opacity-0"
+                                                                    )}
+                                                                />
+                                                                {name}
+                                                            </CommandItem>
+                                                        ))}
+                                                    </CommandGroup>
+                                                </CommandList>
+                                            </Command>
+                                        </div>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[375px] p-0">
-                                        <Command>
-                                            <CommandInput placeholder="Search icon..." />
-                                            <CommandList>
-                                                <CommandEmpty>No icon found.</CommandEmpty>
-                                                <CommandGroup>
-                                                    {iconNames.map((name) => (
-                                                        <CommandItem
-                                                            key={name}
-                                                            value={name}
-                                                            onSelect={(currentValue) => {
-                                                                const iconName = iconNames.find(n => n.toLowerCase() === currentValue.toLowerCase());
-                                                                if (iconName) {
-                                                                    field.onChange(iconName);
-                                                                }
-                                                                setPopoverOpen(false);
-                                                            }}
-                                                        >
-                                                            <Check
-                                                                className={cn(
-                                                                    "mr-2 h-4 w-4",
-                                                                    field.value === name ? "opacity-100" : "opacity-0"
-                                                                )}
-                                                            />
-                                                            {name}
-                                                        </CommandItem>
-                                                    ))}
-                                                </CommandGroup>
-                                            </CommandList>
-                                        </Command>
-                                    </PopoverContent>
                                 </Popover>
                             )}
                         />
@@ -285,3 +285,5 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
         </Dialog>
     );
 }
+
+    
