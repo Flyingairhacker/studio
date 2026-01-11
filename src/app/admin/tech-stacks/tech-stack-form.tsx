@@ -117,6 +117,9 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
         },
     });
 
+    const watchedIcon = watch("iconName");
+    const IconPreview = (LucideIcons as any)[watchedIcon] as LucideIcons.LucideIcon | undefined;
+
      useEffect(() => {
         if (isOpen) {
             if (techStack) {
@@ -179,99 +182,101 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogTrigger asChild>{children}</DialogTrigger>
-            <DialogContent className="sm:max-w-[625px] glass-card">
+            <DialogContent className="sm:max-w-[425px] glass-card">
                 <DialogHeader>
                     <DialogTitle className="font-headline text-2xl text-glow">{techStack ? "Edit Tech Stack" : "New Tech Stack"}</DialogTitle>
                     <DialogDescription>
                         {techStack ? "Update the details for this technology." : "Add a new technology to your stack."}
                     </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit(processSubmit)} className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-right">Name</Label>
-                        <Input id="name" {...register("name")} className="col-span-3" />
-                        {errors.name && <p className="col-span-4 text-sm text-destructive text-right">{errors.name.message}</p>}
+                <form onSubmit={handleSubmit(processSubmit)} className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="name">Name</Label>
+                        <Input id="name" {...register("name")} />
+                        {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="iconName" className="text-right">Icon</Label>
+                     <div className="space-y-2">
+                        <Label htmlFor="iconName">Icon</Label>
                         <Controller
                             name="iconName"
                             control={control}
                             render={({ field }) => (
                                 <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                                     <PopoverTrigger asChild>
-                                        <div className="col-span-3" role="combobox">
-                                            <Command shouldFilter={false} className="overflow-visible bg-transparent">
-                                                <div className="relative">
-                                                     <CommandInput 
-                                                        value={field.value}
-                                                        onValueChange={field.onChange}
-                                                        placeholder="Search icon..."
-                                                        className="w-full"
-                                                     />
-                                                     <ChevronsUpDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 shrink-0 opacity-50" />
-                                                </div>
-                                                <CommandList className="absolute z-10 w-[--radix-popover-trigger-width] top-full mt-1 rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none">
-                                                    <CommandEmpty>No icon found.</CommandEmpty>
-                                                    <CommandGroup>
-                                                        {iconNames
-                                                            .filter(name => name.toLowerCase().includes((field.value || '').toLowerCase()))
-                                                            .slice(0, 100) // Limit results for performance
-                                                            .map((name) => (
-                                                            <CommandItem
-                                                                key={name}
-                                                                value={name}
-                                                                onSelect={(currentValue) => {
-                                                                    const iconName = iconNames.find(n => n.toLowerCase() === currentValue.toLowerCase());
-                                                                    if (iconName) {
-                                                                        field.onChange(iconName);
-                                                                    }
-                                                                    setPopoverOpen(false);
-                                                                }}
-                                                            >
-                                                                <Check
-                                                                    className={cn(
-                                                                        "mr-2 h-4 w-4",
-                                                                        field.value === name ? "opacity-100" : "opacity-0"
-                                                                    )}
-                                                                />
-                                                                {name}
-                                                            </CommandItem>
-                                                        ))}
-                                                    </CommandGroup>
-                                                </CommandList>
-                                            </Command>
-                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={popoverOpen}
+                                            className="w-full justify-between"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                {IconPreview && <IconPreview className="h-4 w-4" />}
+                                                {field.value ? iconNames.find(name => name.toLowerCase() === field.value.toLowerCase()) : "Select icon..."}
+                                            </div>
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
                                     </PopoverTrigger>
+                                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                        <Command>
+                                            <CommandInput placeholder="Search icon..." />
+                                            <CommandList>
+                                                <CommandEmpty>No icon found.</CommandEmpty>
+                                                <CommandGroup>
+                                                    {iconNames.map((name) => (
+                                                    <CommandItem
+                                                        key={name}
+                                                        value={name}
+                                                        onSelect={(currentValue) => {
+                                                            const iconName = iconNames.find(n => n.toLowerCase() === currentValue.toLowerCase());
+                                                            if (iconName) {
+                                                                field.onChange(iconName);
+                                                            }
+                                                            setPopoverOpen(false);
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                field.value && field.value.toLowerCase() === name.toLowerCase() ? "opacity-100" : "opacity-0"
+                                                            )}
+                                                        />
+                                                        {name}
+                                                    </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
                                 </Popover>
                             )}
                         />
-                        {errors.iconName && <p className="col-span-4 text-sm text-destructive text-right">{errors.iconName.message}</p>}
+                        {errors.iconName && <p className="text-sm text-destructive">{errors.iconName.message}</p>}
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="color" className="text-right">Color</Label>
-                        <Controller
+                     <div className="space-y-2">
+                        <Label htmlFor="color">Color</Label>
+                         <Controller
                             name="color"
                             control={control}
                             render={({ field }) => (
-                                <div className="col-span-3 flex items-center gap-2">
+                                <div className="flex items-center gap-2">
                                     <Input
                                         id="color-picker"
                                         type="color"
                                         value={hslStringToHex(field.value)}
                                         onChange={(e) => field.onChange(hexToHslString(e.target.value))}
-                                        className="h-10 p-1"
+                                        className="h-10 p-1 w-12 cursor-pointer"
                                     />
                                     <Input
                                       id="color"
-                                      {...register("color")}
+                                      value={field.value}
+                                      onChange={field.onChange}
                                       className="font-mono"
                                       placeholder="210 40% 98%"
                                     />
                                 </div>
                             )}
                         />
-                        {errors.color && <p className="col-span-4 text-sm text-destructive text-right">{errors.color.message}</p>}
+                        {errors.color && <p className="text-sm text-destructive">{errors.color.message}</p>}
                     </div>
                     
                     <DialogFooter>
@@ -285,5 +290,3 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
         </Dialog>
     );
 }
-
-    
