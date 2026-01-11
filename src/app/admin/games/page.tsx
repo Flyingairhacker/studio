@@ -6,6 +6,7 @@ import CodeCracker from './code-cracker';
 import GlitchHunt from './glitch-hunt';
 import FirewallBreach from './firewall-breach';
 import DataFlow from './data-flow';
+import LogicGateGame from './logic-gate';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import dynamic from 'next/dynamic';
@@ -39,6 +40,7 @@ export default function GamesPage() {
               <TabsTrigger value="firewall-breach">Firewall Breach</TabsTrigger>
               <TabsTrigger value="asteroid-defense">Asteroid Defense</TabsTrigger>
               <TabsTrigger value="data-flow">Data Flow</TabsTrigger>
+              <TabsTrigger value="logic-gate">Logic Gate</TabsTrigger>
             </TabsList>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
@@ -96,6 +98,15 @@ export default function GamesPage() {
                 Rotate the tiles to connect the source to the destination and complete the data circuit.
             </p>
             <DataFlow />
+          </TabsContent>
+          <TabsContent value="logic-gate" className="mt-6">
+             <h2 className="text-xl font-headline font-semibold border-b pb-2 mb-4 flex items-center gap-2">
+                <Gamepad2 className="text-primary" /> Logic Gate
+            </h2>
+             <p className="text-sm text-muted-foreground mb-4">
+                Toggle the input switches to satisfy the logic circuit and turn the final output light on.
+            </p>
+            <LogicGateGame />
           </TabsContent>
         </Tabs>
       </GlassCard>

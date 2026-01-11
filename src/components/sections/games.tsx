@@ -9,6 +9,7 @@ import CodeCracker from "@/app/admin/games/code-cracker";
 import GlitchHunt from "@/app/admin/games/glitch-hunt";
 import FirewallBreach from "@/app/admin/games/firewall-breach";
 import DataFlow from "@/app/admin/games/data-flow";
+import LogicGateGame from "@/app/admin/games/logic-gate";
 import SectionTitle from "../ui/section-title";
 import GlassCard from "../ui/glass-card";
 import { useState, useEffect } from "react";
@@ -79,6 +80,7 @@ export default function GamesSection() {
                             <TabsTrigger value="firewall-breach">Firewall Breach</TabsTrigger>
                             <TabsTrigger value="asteroid-defense">Asteroid Defense</TabsTrigger>
                             <TabsTrigger value="data-flow">Data Flow</TabsTrigger>
+                            <TabsTrigger value="logic-gate">Logic Gate</TabsTrigger>
                         </TabsList>
                         <ScrollBar orientation="horizontal" />
                     </ScrollArea>
@@ -118,6 +120,12 @@ export default function GamesSection() {
                             Rotate the tiles to connect the source to the destination and complete the data circuit.
                         </p>
                         <DataFlow />
+                    </TabsContent>
+                    <TabsContent value="logic-gate" className="mt-6">
+                         <p className="text-sm text-center text-muted-foreground mb-4">
+                            Toggle the input switches to satisfy the logic circuit and turn the final output light on.
+                        </p>
+                        <LogicGateGame />
                     </TabsContent>
                 </Tabs>
             </GlassCard>
