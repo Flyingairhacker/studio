@@ -10,6 +10,15 @@ import { Bot, Loader2, Palette, Terminal, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateTheme } from "./actions";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { generateSceneInfo } from "@/ai/flows/generate-scene-info";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
@@ -185,13 +194,9 @@ export default function BrandingClient() {
           title: "Scene Updated",
           description: `Weather set to ${result.weather}, terrain set to ${result.terrain}. Don't forget to save!`,
         });
-      } catch (error) {
-        console.error("Failed to generate scene info:", error);
-        toast({
-          variant: "destructive",
-          title: "AI Error",
-          description: "Could not generate scene information from the prompt.",
-        });
+      } catch (e: any) {
+        console.error("Failed to generate scene info:", e);
+        setError(e.message || "Could not generate scene information from the prompt.");
       }
     });
   };
@@ -214,127 +219,136 @@ export default function BrandingClient() {
   );
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-start">
-        <div>
-            <h1 className="text-3xl font-headline font-bold text-glow">
-            System Aesthetics
-            </h1>
-            <p className="text-muted-foreground">
-            Customize the look and feel of your portfolio.
-            </p>
+    <>
+      <AlertDialog open={!!error} onOpenChange={(open) => !open && setError(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2"><Terminal className="h-5 w-5"/> AI Generation Failed</AlertDialogTitle>
+            <AlertDialogDescription>
+              {error}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setError(null)}>Close</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="space-y-8">
+        <div className="flex justify-between items-start">
+          <div>
+              <h1 className="text-3xl font-headline font-bold text-glow">
+              System Aesthetics
+              </h1>
+              <p className="text-muted-foreground">
+              Customize the look and feel of your portfolio.
+              </p>
+          </div>
+          <Button onClick={saveSettings}>Save Settings</Button>
         </div>
-        <Button onClick={saveSettings}>Save Settings</Button>
+
+        <GlassCard className="p-6">
+          <h2 className="text-xl font-headline font-semibold border-b pb-2 mb-4 flex items-center gap-2">
+              <Palette className="text-primary"/> Color Palette
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {renderColorInput("background", "Background")}
+              {renderColorInput("foreground", "Foreground")}
+              {renderColorInput("card", "Card")}
+              {renderColorInput("muted", "Muted")}
+              {renderColorInput("primary", "Primary")}
+              {renderColorInput("secondary", "Secondary")}
+              {renderColorInput("accent", "Accent")}
+          </div>
+          <div className="mt-6 flex justify-end">
+            <Button onClick={saveSettings}>Save Palette</Button>
+          </div>
+        </GlassCard>
+
+        <GlassCard className="p-6">
+          <h2 className="text-xl font-headline font-semibold border-b pb-2 mb-4 flex items-center gap-2">
+            <Bot className="text-primary" /> AI Branding Assistant
+          </h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Describe the branding you want, and let AI generate a new theme.
+            Provide a prompt like `a dark, moody theme with fiery orange accents`. The AI must return a full palette.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Input
+              placeholder="e.g., 'A cyberpunk theme with neon green and deep blue'"
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              disabled={isPending}
+            />
+            <Button onClick={handleGenerateTheme} disabled={isPending || !aiPrompt}>
+              {isPending ? "Generating..." : "Generate"}
+            </Button>
+          </div>
+        </GlassCard>
+
+        <GlassCard className="p-6">
+          <h2 className="text-xl font-headline font-semibold border-b pb-2 mb-4 flex items-center gap-2">
+              <Wand2 className="text-primary"/> Scene Configuration
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                  <Label htmlFor="weather">Weather</Label>
+                  <Select value={weather} onValueChange={(v: BrandingData['weather']) => setWeather(v)}>
+                      <SelectTrigger id="weather">
+                          <SelectValue placeholder="Select weather..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          <SelectItem value="rain">Rain</SelectItem>
+                          <SelectItem value="snow">Snow</SelectItem>
+                          <SelectItem value="fog">Fog</SelectItem>
+                          <SelectItem value="storm">Storm</SelectItem>
+                          <SelectItem value="sunny">Sunny</SelectItem>
+                          <SelectItem value="dusk">Dusk</SelectItem>
+                          <SelectItem value="night">Night</SelectItem>
+                      </SelectContent>
+                  </Select>
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="terrain">Terrain</Label>
+                  <Select value={terrain} onValueChange={(v: BrandingData['terrain']) => setTerrain(v)}>
+                      <SelectTrigger id="terrain">
+                          <SelectValue placeholder="Select terrain..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          <SelectItem value="city">City</SelectItem>
+                          <SelectItem value="hills">Hills</SelectItem>
+                          <SelectItem value="mountains">Mountains</SelectItem>
+                          <SelectItem value="forest">Forest</SelectItem>
+                          <SelectItem value="beach">Beach</SelectItem>
+                          <SelectItem value="desert">Desert</SelectItem>
+                      </SelectContent>
+                  </Select>
+              </div>
+          </div>
+
+          <div className="mt-6 border-t pt-6">
+              <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
+                  <Bot className="text-primary"/> AI Scene Generator
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Describe a scene to let AI configure the weather and terrain for you.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                  <Input
+                      placeholder="e.g., 'a foggy morning in the mountains'"
+                      value={aiScenePrompt}
+                      onChange={(e) => setAiScenePrompt(e.target.value)}
+                      disabled={isScenePending}
+                  />
+                  <Button onClick={handleGenerateScene} disabled={isScenePending || !aiScenePrompt}>
+                      {isScenePending ? <Loader2 className="animate-spin" /> : "Generate Scene"}
+                  </Button>
+              </div>
+          </div>
+        </GlassCard>
       </div>
-
-      <GlassCard className="p-6">
-        <h2 className="text-xl font-headline font-semibold border-b pb-2 mb-4 flex items-center gap-2">
-            <Palette className="text-primary"/> Color Palette
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {renderColorInput("background", "Background")}
-            {renderColorInput("foreground", "Foreground")}
-            {renderColorInput("card", "Card")}
-            {renderColorInput("muted", "Muted")}
-            {renderColorInput("primary", "Primary")}
-            {renderColorInput("secondary", "Secondary")}
-            {renderColorInput("accent", "Accent")}
-        </div>
-        <div className="mt-6 flex justify-end">
-          <Button onClick={saveSettings}>Save Palette</Button>
-        </div>
-      </GlassCard>
-
-      <GlassCard className="p-6">
-        <h2 className="text-xl font-headline font-semibold border-b pb-2 mb-4 flex items-center gap-2">
-          <Bot className="text-primary" /> AI Branding Assistant
-        </h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          Describe the branding you want, and let AI generate a new theme.
-          Provide a prompt like `a dark, moody theme with fiery orange accents`. The AI must return a full palette.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Input
-            placeholder="e.g., 'A cyberpunk theme with neon green and deep blue'"
-            value={aiPrompt}
-            onChange={(e) => setAiPrompt(e.target.value)}
-            disabled={isPending}
-          />
-          <Button onClick={handleGenerateTheme} disabled={isPending || !aiPrompt}>
-            {isPending ? "Generating..." : "Generate"}
-          </Button>
-        </div>
-        {error && (
-            <Alert variant="destructive" className="mt-4">
-            <Terminal className="h-4 w-4" />
-            <AlertTitle>Generation Failed</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-            </Alert>
-        )}
-      </GlassCard>
-
-      <GlassCard className="p-6">
-        <h2 className="text-xl font-headline font-semibold border-b pb-2 mb-4 flex items-center gap-2">
-            <Wand2 className="text-primary"/> Scene Configuration
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-                <Label htmlFor="weather">Weather</Label>
-                <Select value={weather} onValueChange={(v: BrandingData['weather']) => setWeather(v)}>
-                    <SelectTrigger id="weather">
-                        <SelectValue placeholder="Select weather..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="rain">Rain</SelectItem>
-                        <SelectItem value="snow">Snow</SelectItem>
-                        <SelectItem value="fog">Fog</SelectItem>
-                        <SelectItem value="storm">Storm</SelectItem>
-                        <SelectItem value="sunny">Sunny</SelectItem>
-                        <SelectItem value="dusk">Dusk</SelectItem>
-                        <SelectItem value="night">Night</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="terrain">Terrain</Label>
-                 <Select value={terrain} onValueChange={(v: BrandingData['terrain']) => setTerrain(v)}>
-                    <SelectTrigger id="terrain">
-                        <SelectValue placeholder="Select terrain..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="city">City</SelectItem>
-                        <SelectItem value="hills">Hills</SelectItem>
-                        <SelectItem value="mountains">Mountains</SelectItem>
-                        <SelectItem value="forest">Forest</SelectItem>
-                        <SelectItem value="beach">Beach</SelectItem>
-                        <SelectItem value="desert">Desert</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-        </div>
-
-         <div className="mt-6 border-t pt-6">
-            <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
-                <Bot className="text-primary"/> AI Scene Generator
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Describe a scene to let AI configure the weather and terrain for you.
-            </p>
-             <div className="flex flex-col sm:flex-row gap-2">
-                <Input
-                    placeholder="e.g., 'a foggy morning in the mountains'"
-                    value={aiScenePrompt}
-                    onChange={(e) => setAiScenePrompt(e.target.value)}
-                    disabled={isScenePending}
-                />
-                <Button onClick={handleGenerateScene} disabled={isScenePending || !aiScenePrompt}>
-                    {isScenePending ? <Loader2 className="animate-spin" /> : "Generate Scene"}
-                </Button>
-             </div>
-         </div>
-      </GlassCard>
-    </div>
+    </>
   );
 }
