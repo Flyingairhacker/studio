@@ -11,13 +11,7 @@ import SystemAnomaly from './system-anomaly';
 import DataCompression from './data-compression';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import dynamic from 'next/dynamic';
-import { Skeleton } from '@/components/ui/skeleton';
-
-const AsteroidDefense = dynamic(() => import('./asteroid-defense'), {
-  loading: () => <Skeleton className="h-[460px] w-full max-w-sm mx-auto" />,
-  ssr: false,
-});
+import AsteroidDefenseLoader from './asteroid-defense-loader';
 
 
 export default function GamesPage() {
@@ -92,7 +86,7 @@ export default function GamesPage() {
              <p className="text-sm text-muted-foreground mb-4">
                 Type the words on the falling asteroids to destroy them before they hit your base.
             </p>
-            <AsteroidDefense />
+            <AsteroidDefenseLoader />
           </TabsContent>
           <TabsContent value="data-flow" className="mt-6">
              <h2 className="text-xl font-headline font-semibold border-b pb-2 mb-4 flex items-center gap-2">
