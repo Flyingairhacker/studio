@@ -10,6 +10,8 @@ import GlitchHunt from "@/app/admin/games/glitch-hunt";
 import FirewallBreach from "@/app/admin/games/firewall-breach";
 import DataFlow from "@/app/admin/games/data-flow";
 import LogicGateGame from "@/app/admin/games/logic-gate";
+import SystemAnomaly from "@/app/admin/games/system-anomaly";
+import DataCompression from "@/app/admin/games/data-compression";
 import SectionTitle from "../ui/section-title";
 import GlassCard from "../ui/glass-card";
 import { useState, useEffect } from "react";
@@ -81,6 +83,8 @@ export default function GamesSection() {
                             <TabsTrigger value="asteroid-defense">Asteroid Defense</TabsTrigger>
                             <TabsTrigger value="data-flow">Data Flow</TabsTrigger>
                             <TabsTrigger value="logic-gate">Logic Gate</TabsTrigger>
+                            <TabsTrigger value="system-anomaly">System Anomaly</TabsTrigger>
+                            <TabsTrigger value="data-compression">Data Compression</TabsTrigger>
                         </TabsList>
                         <ScrollBar orientation="horizontal" />
                     </ScrollArea>
@@ -126,6 +130,18 @@ export default function GamesSection() {
                             Toggle the input switches to satisfy the logic circuit and turn the final output light on.
                         </p>
                         <LogicGateGame />
+                    </TabsContent>
+                    <TabsContent value="system-anomaly" className="mt-6">
+                         <p className="text-sm text-center text-muted-foreground mb-4">
+                            Find all the hidden anomalies on the grid without triggering them. Numbers indicate adjacent anomalies.
+                        </p>
+                        <SystemAnomaly />
+                    </TabsContent>
+                    <TabsContent value="data-compression" className="mt-6">
+                         <p className="text-sm text-center text-muted-foreground mb-4">
+                            Slide tiles to merge matching data blocks and create a block with the value 2048.
+                        </p>
+                        <DataCompression />
                     </TabsContent>
                 </Tabs>
             </GlassCard>
