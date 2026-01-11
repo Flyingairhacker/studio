@@ -102,7 +102,7 @@ const BackgroundScene = ({ weather, terrain }: BackgroundSceneProps) => {
       stars.rotation.y = elapsedTime * 0.01;
       
       // Animate weather particles
-      if (weatherParticlesRef.current && weatherParticlesRef.current.geometry) {
+      if (weatherParticlesRef.current?.geometry?.attributes?.position) {
         const positions = (weatherParticlesRef.current.geometry.attributes.position as THREE.BufferAttribute).array as Float32Array;
         const velocities = (weatherParticlesRef.current.geometry.userData.velocities as Float32Array);
         for(let i=0; i<positions.length / 3; i++) {
@@ -282,5 +282,3 @@ const BackgroundScene = ({ weather, terrain }: BackgroundSceneProps) => {
 };
 
 export default BackgroundScene;
-
-    
