@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm, Controller } from "react-hook-form";
@@ -41,7 +42,7 @@ const iconNames = Object.keys(LucideIcons).filter(k => k !== 'createLucideIcon' 
 const techStackSchema = z.object({
     name: z.string().min(1, "Name is required"),
     iconName: z.string().refine(val => iconNames.includes(val), { message: "Invalid icon name." }),
-    color: z.string().regex(/^hsl\(\s*\d{1,3},\s*\d{1,3}%\s*,\s*\d{1,3}%\s*\)$/, "Must be a valid HSL color string."),
+    color: z.string().regex(/^\d{1,3}\s\d{1,3}%\s\d{1,3}%$/, "Must be a valid HSL color string (e.g., '210 40% 98%')."),
 });
 
 type TechStackFormData = z.infer<typeof techStackSchema>;
@@ -55,7 +56,7 @@ interface TechStackFormProps {
 
 const hslStringToHex = (hsl: string): string => {
     if (!hsl) return '#ffffff';
-    const match = /hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/.exec(hsl);
+    const match = /(\d+)\s(\d+)%\s(\d+)%/.exec(hsl);
     if (!match) return "#ffffff";
     let h = parseInt(match[1]);
     let s = parseInt(match[2]);
@@ -73,7 +74,7 @@ const hslStringToHex = (hsl: string): string => {
 
 const hexToHslString = (hex: string): string => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (!result) return "hsl(0, 0%, 0%)";
+    if (!result) return "0 0% 0%";
 
     let r = parseInt(result[1], 16) / 255;
     let g = parseInt(result[2], 16) / 255;
@@ -97,7 +98,7 @@ const hexToHslString = (hex: string): string => {
     s = Math.round(s * 100);
     l = Math.round(l * 100);
 
-    return `hsl(${h}, ${s}%, ${l}%)`;
+    return `${h} ${s}% ${l}%`;
 };
 
 
@@ -107,26 +108,32 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
     const { toast } = useToast();
     const firestore = useFirestore();
 
-    const { register, handleSubmit, formState: { errors }, control, watch, setValue } = useForm<TechStackFormData>({
+    const { register, handleSubmit, formState: { errors }, control, reset, watch } = useForm<TechStackFormData>({
         resolver: zodResolver(techStackSchema),
-        defaultValues: techStack || {
+        defaultValues: {
             name: "",
             iconName: "Code",
-            color: "hsl(210, 40%, 98%)",
+            color: "210 40% 98%",
         },
     });
 
-    useEffect(() => {
-        if (isOpen && techStack) {
-            setValue('name', techStack.name);
-            setValue('iconName', techStack.iconName);
-            setValue('color', techStack.color);
-        } else if (isOpen && !techStack) {
-            setValue('name', '');
-            setValue('iconName', 'Code');
-            setValue('color', 'hsl(210, 40%, 98%)');
+     useEffect(() => {
+        if (isOpen) {
+            if (techStack) {
+                reset({
+                    name: techStack.name,
+                    iconName: techStack.iconName,
+                    color: techStack.color.replace(/hsl\(|\)|,/g, ''),
+                });
+            } else {
+                reset({
+                    name: "",
+                    iconName: "Code",
+                    color: "210 40% 98%",
+                });
+            }
         }
-    }, [techStack, isOpen, setValue]);
+    }, [techStack, isOpen, reset]);
 
     const processSubmit = async (data: TechStackFormData) => {
         if (!firestore) {
@@ -138,11 +145,16 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
             return;
         }
 
+        const dataToSave = {
+          ...data,
+          color: `hsl(${data.color})`
+        };
+
         startTransition(() => {
             if (techStack?.id) {
                 const techStackRef = doc(firestore, "tech_stacks", techStack.id);
                 updateDocumentNonBlocking(techStackRef, {
-                    ...data,
+                    ...dataToSave,
                     updatedAt: serverTimestamp(),
                 });
                 toast({
@@ -152,7 +164,7 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
             } else {
                 const techStacksCollection = collection(firestore, "tech_stacks");
                 addDocumentNonBlocking(techStacksCollection, {
-                    ...data,
+                    ...dataToSave,
                     createdAt: serverTimestamp(),
                 });
                 toast({
@@ -195,7 +207,7 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
                                             className="col-span-3 justify-between"
                                         >
                                             {field.value
-                                                ? iconNames.find((name) => name === field.value)
+                                                ? iconNames.find((name) => name.toLowerCase() === field.value.toLowerCase())
                                                 : "Select icon..."}
                                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                         </Button>
@@ -211,14 +223,17 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
                                                             key={name}
                                                             value={name}
                                                             onSelect={(currentValue) => {
-                                                                setValue("iconName", currentValue === field.value ? "" : currentValue, { shouldValidate: true });
+                                                                const iconName = iconNames.find(n => n.toLowerCase() === currentValue.toLowerCase());
+                                                                if (iconName) {
+                                                                    field.onChange(iconName);
+                                                                }
                                                                 setPopoverOpen(false);
                                                             }}
                                                         >
                                                             <Check
                                                                 className={cn(
                                                                     "mr-2 h-4 w-4",
-                                                                    field.value === name ? "opacity-100" : "opacity-0"
+                                                                    field.value && field.value.toLowerCase() === name.toLowerCase() ? "opacity-100" : "opacity-0"
                                                                 )}
                                                             />
                                                             {name}
@@ -251,7 +266,7 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
                                       id="color"
                                       {...register("color")}
                                       className="font-mono"
-                                      placeholder="hsl(210, 40%, 98%)"
+                                      placeholder="210 40% 98%"
                                     />
                                 </div>
                             )}
@@ -270,3 +285,5 @@ export function TechStackForm({ techStack, children, onClose, isOpen }: TechStac
         </Dialog>
     );
 }
+
+    

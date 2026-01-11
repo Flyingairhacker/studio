@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Project, TechStack } from "@/lib/types";
@@ -109,9 +110,9 @@ const ProjectCard = ({ project }: { project: Project }) => {
                 const Icon = (LucideIcons as any)[tech.iconName] as LucideIcon | undefined;
                 return (
                   <Badge key={tech.id} variant="secondary" className="bg-secondary/10 text-secondary" style={{
-                    borderColor: `hsl(${tech.color.split(',')[0]}, ${tech.color.split(',')[1]}, ${tech.color.split(',')[2]} / 0.5)`
+                    borderColor: `${tech.color.replace(')', '/ 0.5)')}`
                   }}>
-                    {Icon && <Icon className="mr-1.5 h-4 w-4" style={{ color: `hsl(${tech.color.split(',')[0]}, ${tech.color.split(',')[1]}, ${tech.color.split(',')[2]})`}}/>}
+                    {Icon && <Icon className="mr-1.5 h-4 w-4" style={{ color: tech.color}}/>}
                     {tech.name}
                   </Badge>
                 );
@@ -147,3 +148,5 @@ const ProjectCard = ({ project }: { project: Project }) => {
 };
 
 export default ProjectCard;
+
+    

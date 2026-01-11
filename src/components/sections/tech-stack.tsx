@@ -1,3 +1,4 @@
+
 "use client";
 
 import { motion } from "framer-motion";
@@ -23,8 +24,7 @@ const defaultTech: TechStackType[] = [
 
 const TechCard = ({ name, iconName, color }: { name: string; iconName: string; color: string }) => {
   const Icon = LucideIcons[iconName as LucideIconName] as React.ElementType || LucideIcons['Code'];
-  const safeColor = color.startsWith('hsl') ? color : `hsl(${color})`;
-
+  
   return (
     <motion.div
       whileHover={{ y: -10, scale: 1.05 }}
@@ -34,17 +34,17 @@ const TechCard = ({ name, iconName, color }: { name: string; iconName: string; c
         <div 
             className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" 
             style={{
-            background: `radial-gradient(circle at 50% 100%, ${safeColor.replace(')', ' / 0.1)').replace('hsl(','hsla(')}, transparent 70%)`
+            background: `radial-gradient(circle at 50% 100%, ${color.replace(')', ' / 0.1)').replace('hsl(','hsla(')}, transparent 70%)`
             }}
         />
         <div 
             className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black/20 to-transparent"
         />
-        <Icon className="h-16 w-16 transition-all duration-300 group-hover:scale-110" style={{ color: safeColor }} />
-        <h3 className="font-headline text-xl font-bold text-primary-foreground transition-colors duration-300 group-hover:text-glow" style={{'--tw-text-shadow-color': safeColor, textShadow: `0 0 8px ${safeColor}`}}>{name}</h3>
+        <Icon className="h-16 w-16 transition-all duration-300 group-hover:scale-110" style={{ color: color }} />
+        <h3 className="font-headline text-xl font-bold text-primary-foreground transition-colors duration-300 group-hover:text-glow" style={{'--tw-text-shadow-color': color, textShadow: `0 0 8px ${color}`}}>{name}</h3>
         <div 
             className="absolute bottom-0 h-0.5 w-0 group-hover:w-1/2 transition-all duration-300"
-            style={{ background: safeColor }}
+            style={{ background: color }}
         />
         </GlassCard>
     </motion.div>
@@ -121,3 +121,5 @@ const TechStack = () => {
 };
 
 export default TechStack;
+
+    
