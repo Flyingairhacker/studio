@@ -7,6 +7,7 @@ import SequenceBreaker from "@/app/admin/games/sequence-breaker";
 import CodeCracker from "@/app/admin/games/code-cracker";
 import GlitchHunt from "@/app/admin/games/glitch-hunt";
 import FirewallBreach from "@/app/admin/games/firewall-breach";
+import AsteroidDefense from "@/app/admin/games/asteroid-defense";
 import SectionTitle from "../ui/section-title";
 import GlassCard from "../ui/glass-card";
 import { useState, useEffect } from "react";
@@ -61,11 +62,12 @@ export default function GamesSection() {
             />
             <GlassCard className="max-w-3xl mx-auto mt-16 p-8">
                  <Tabs defaultValue="sequence-breaker">
-                    <TabsList className="grid w-full grid-cols-4">
+                    <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-5">
                         <TabsTrigger value="sequence-breaker">Sequence Breaker</TabsTrigger>
                         <TabsTrigger value="code-cracker">Code Cracker</TabsTrigger>
                         <TabsTrigger value="glitch-hunt">Glitch Hunt</TabsTrigger>
                         <TabsTrigger value="firewall-breach">Firewall Breach</TabsTrigger>
+                        <TabsTrigger value="asteroid-defense">Asteroid Defense</TabsTrigger>
                     </TabsList>
                     <TabsContent value="sequence-breaker" className="mt-6">
                         <p className="text-sm text-center text-muted-foreground mb-4">
@@ -91,6 +93,12 @@ export default function GamesSection() {
                             Accurately type the data packet before the timer runs out to breach the firewall and score points.
                         </p>
                         <FirewallBreach />
+                    </TabsContent>
+                    <TabsContent value="asteroid-defense" className="mt-6">
+                        <p className="text-sm text-center text-muted-foreground mb-4">
+                            Type the words on the falling asteroids to destroy them before they hit your base.
+                        </p>
+                        <AsteroidDefense />
                     </TabsContent>
                 </Tabs>
             </GlassCard>
