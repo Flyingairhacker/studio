@@ -11,6 +11,12 @@ import { getFirebaseAdmin } from '@/lib/firebase/server-app';
 import type { GenerateSceneInfoOutput } from '@/ai/flows/generate-scene-info';
 
 async function getBrandingData(): Promise<GenerateSceneInfoOutput> {
+  // Nexus Shield: Check for environment variables before attempting to initialize Firebase Admin.
+  if (!process.env.FIREBASE_PROJECT_ID) {
+    console.warn("Firebase Admin credentials not found. Falling back to default scene.");
+    return { weather: 'none', terrain: 'none' };
+  }
+
   try {
     const { db } = getFirebaseAdmin();
     const brandingDoc = await db.collection('branding').doc('live-branding').get();
@@ -24,10 +30,9 @@ async function getBrandingData(): Promise<GenerateSceneInfoOutput> {
     }
   } catch (error) {
     console.error("Failed to fetch branding data from Firestore:", error);
-    // This catch block will handle the missing environment variables error gracefully.
   }
   
-  // Return a default if Firestore fails for any reason.
+  // Return a default if Firestore fails for any reason after the initial check.
   return { weather: 'none', terrain: 'none' };
 }
 
