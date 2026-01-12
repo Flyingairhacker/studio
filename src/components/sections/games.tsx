@@ -20,11 +20,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 import dynamic from 'next/dynamic';
 
-const AsteroidDefense = dynamic(() => import('@/app/admin/games/asteroid-defense'), {
-  loading: () => <Skeleton className="h-[460px] w-full max-w-sm mx-auto" />,
-  ssr: false,
-});
-
 
 export default function GamesSection() {
     const servicesAvailable = useFirebaseServicesAvailable();
@@ -80,7 +75,6 @@ export default function GamesSection() {
                             <TabsTrigger value="code-cracker">Code Cracker</TabsTrigger>
                             <TabsTrigger value="glitch-hunt">Glitch Hunt</TabsTrigger>
                             <TabsTrigger value="firewall-breach">Firewall Breach</TabsTrigger>
-                            <TabsTrigger value="asteroid-defense">Asteroid Defense</TabsTrigger>
                             <TabsTrigger value="data-flow">Data Flow</TabsTrigger>
                             <TabsTrigger value="logic-gate">Logic Gate</TabsTrigger>
                             <TabsTrigger value="system-anomaly">System Anomaly</TabsTrigger>
@@ -112,12 +106,6 @@ export default function GamesSection() {
                             Accurately type the data packet before the timer runs out to breach the firewall and score points.
                         </p>
                         <FirewallBreach />
-                    </TabsContent>
-                    <TabsContent value="asteroid-defense" className="mt-6">
-                        <p className="text-sm text-center text-muted-foreground mb-4">
-                            Type the words on the falling asteroids to destroy them before they hit your base.
-                        </p>
-                        <AsteroidDefense />
                     </TabsContent>
                     <TabsContent value="data-flow" className="mt-6">
                          <p className="text-sm text-center text-muted-foreground mb-4">

@@ -11,7 +11,6 @@ import SystemAnomaly from './system-anomaly';
 import DataCompression from './data-compression';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import AsteroidDefenseLoader from './asteroid-defense-loader';
 
 
 export default function GamesPage() {
@@ -34,7 +33,6 @@ export default function GamesPage() {
               <TabsTrigger value="code-cracker">Code Cracker</TabsTrigger>
               <TabsTrigger value="glitch-hunt">Glitch Hunt</TabsTrigger>
               <TabsTrigger value="firewall-breach">Firewall Breach</TabsTrigger>
-              <TabsTrigger value="asteroid-defense">Asteroid Defense</TabsTrigger>
               <TabsTrigger value="data-flow">Data Flow</TabsTrigger>
               <TabsTrigger value="logic-gate">Logic Gate</TabsTrigger>
               <TabsTrigger value="system-anomaly">System Anomaly</TabsTrigger>
@@ -78,15 +76,6 @@ export default function GamesPage() {
                 Accurately type the data packet before the timer runs out to breach the firewall and score points.
             </p>
             <FirewallBreach />
-          </TabsContent>
-           <TabsContent value="asteroid-defense" className="mt-6">
-             <h2 className="text-xl font-headline font-semibold border-b pb-2 mb-4 flex items-center gap-2">
-                <Gamepad2 className="text-primary" /> Asteroid Defense
-            </h2>
-             <p className="text-sm text-muted-foreground mb-4">
-                Type the words on the falling asteroids to destroy them before they hit your base.
-            </p>
-            <AsteroidDefenseLoader />
           </TabsContent>
           <TabsContent value="data-flow" className="mt-6">
              <h2 className="text-xl font-headline font-semibold border-b pb-2 mb-4 flex items-center gap-2">
