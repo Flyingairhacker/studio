@@ -56,7 +56,7 @@ export default function BioForm() {
     defaultValues: {
         name: "Rohit Kumar",
         title: "Flutter & IoT Developer",
-        description: "Results-driven Flutter Developer with hands-on experience in mobile application development, specializing in Android (Java) and cross-platform solutions using Flutter. Skilled in building scalable, high-performance apps, implementing unit testing, and collaborating within Agile teams.",
+        description: "Passionate Flutter Developer with a strong foundation in mobile application development, particularly in Android (Java) and cross-platform apps using Flutter. Adept at building scalable and high-performance applications, implementing unit testing, and working in Agile teams. Committed to continuous learning and contributing to innovative projects.",
         avatarUrl: "",
         contactTitle: "Request Intel",
         contactSubtitle: "Open a secure channel for inquiries, collaborations, or to discuss a project. All transmissions are monitored.",
@@ -70,7 +70,7 @@ export default function BioForm() {
       reset({
         name: bio.name || "Rohit Kumar",
         title: bio.title || "Flutter & IoT Developer",
-        description: bio.description || "Results-driven Flutter Developer with hands-on experience in mobile application development, specializing in Android (Java) and cross-platform solutions using Flutter. Skilled in building scalable, high-performance apps, implementing unit testing, and collaborating within Agile teams.",
+        description: bio.description || "Passionate Flutter Developer with a strong foundation in mobile application development, particularly in Android (Java) and cross-platform apps using Flutter. Adept at building scalable and high-performance applications, implementing unit testing, and working in Agile teams. Committed to continuous learning and contributing to innovative projects.",
         avatarUrl: bio.avatarUrl || "",
         contactTitle: bio.contactTitle || "Request Intel",
         contactSubtitle: bio.contactSubtitle || "Open a secure channel for inquiries, collaborations, or to discuss a project. All transmissions are monitored.",

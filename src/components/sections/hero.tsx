@@ -19,7 +19,7 @@ const AnimatedText = ({ text }: { text: string }) => {
           className="inline-block"
           style={{ animation: `fadeInUp 0.8s ease-out ${index * 0.05}s forwards`, opacity: 0 }}
         >
-          {char === " " ? "\u00A0" : char}
+          {char === " " ? " " : char}
         </span>
       ))}
     </span>
@@ -30,7 +30,7 @@ const defaultBio: Bio = {
     id: "local-bio",
     name: "Rohit Kumar",
     title: "Flutter & IoT Developer",
-    description: "Results-driven Flutter Developer with hands-on experience in mobile application development, specializing in Android (Java) and cross-platform solutions using Flutter. Skilled in building scalable, high-performance apps, implementing unit testing, and collaborating within Agile teams.",
+    description: "Passionate Flutter Developer with a strong foundation in mobile application development, particularly in Android (Java) and cross-platform apps using Flutter. Adept at building scalable and high-performance applications, implementing unit testing, and working in Agile teams. Committed to continuous learning and contributing to innovative projects.",
     avatarUrl: "",
     modelUrl: "https://sketchfab.com/models/0c74ca18fa6a4d05be9fe6ffa2206db8/embed"
 };
@@ -84,7 +84,7 @@ const Hero = () => {
                 <span className="block text-primary-foreground"><AnimatedText text={bio?.title ?? "Flutter & IoT Developer"} /></span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-lg">
-                {bio?.description ?? "Results-driven Flutter Developer with hands-on experience in mobile application development, specializing in Android (Java) and cross-platform solutions using Flutter."}
+                {bio?.description ?? "Passionate Flutter Developer with a strong foundation in mobile application development, particularly in Android (Java) and cross-platform apps using Flutter."}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" asChild>

@@ -4,17 +4,6 @@ import type { Project, ContactMessage } from "@/lib/types";
 export const localProjects: Project[] = [
   {
     id: "project-1",
-    title: "Fit Away App",
-    description: "A fitness and sports venue booking app that allows users to discover, book, and manage gym or sports space reservations with role-based dashboards for admins and users.",
-    techStackIds: ["flutter", "firebase", "supabase", "getx"],
-    systemType: "Mobile",
-    repoUrl: "#",
-    liveUrl: "#",
-    imageUrl: "https://picsum.photos/seed/fitaway/800/600",
-    imageHint: "fitness app interface",
-  },
-  {
-    id: "project-2",
     title: "My Diary App",
     description: "A mobile application for scheduling, managing, and sharing meetings and notes among employees and clients. Implemented for internal communications at Appnweb Technologies, improving team collaboration by 40%.",
     techStackIds: ["flutter", "firebase", "getx", "dio"],
@@ -25,7 +14,7 @@ export const localProjects: Project[] = [
     imageHint: "digital diary schedule",
   },
   {
-    id: "project-3",
+    id: "project-2",
     title: "Jeebly Desktop",
     description: "Windows-based software for booking and managing both documented and non-documented deliveries. Successfully deployed in the UAE, streamlining delivery management processes.",
     techStackIds: ["flutter", "sql", "rest-api"],
@@ -36,7 +25,7 @@ export const localProjects: Project[] = [
     imageHint: "delivery logistics dashboard",
   },
   {
-    id: "project-4",
+    id: "project-3",
     title: "Broker Jee",
     description: "A property listing and management app connecting property dealers with customers. Facilitated over 500 property transactions, reducing deal closure time by 30%.",
     techStackIds: ["flutter", "firebase", "google-maps"],
@@ -47,7 +36,7 @@ export const localProjects: Project[] = [
     imageHint: "real estate map",
   },
   {
-    id: "project-5",
+    id: "project-4",
     title: "Real-Time Air Quality Monitoring System",
     description: "Designed a system to monitor and visualize real-time air quality data through mobile and web applications, using IoT (Arduino) and Flutter.",
     techStackIds: ["iot", "flutter", "firebase"],
@@ -58,7 +47,7 @@ export const localProjects: Project[] = [
     imageHint: "air quality sensor",
   },
     {
-    id: "project-6",
+    id: "project-5",
     title: "Gas Leakage Detector System",
     description: "Engineered a smart home safety system that detects gas leakage, sends mobile alerts, and triggers alarms for immediate response using IoT sensors and Flutter.",
     techStackIds: ["iot", "flutter", "firebase"],
@@ -67,6 +56,17 @@ export const localProjects: Project[] = [
     liveUrl: "#",
     imageUrl: "https://picsum.photos/seed/gasdetector/800/600",
     imageHint: "gas sensor alert",
+  },
+  {
+    id: "project-6",
+    title: "Geolocation-Based Attendance System",
+    description: "A location-based employee attendance tracking system ensuring precise work-hour monitoring.",
+    techStackIds: ["flutter", "firebase", "google-maps"],
+    systemType: "Mobile",
+    repoUrl: "#",
+    liveUrl: "#",
+    imageUrl: "https://picsum.photos/seed/geoattendance/800/600",
+    imageHint: "location tracking map",
   },
 ];
 
