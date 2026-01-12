@@ -53,14 +53,24 @@ export default function BioForm() {
     formState: { errors, isDirty },
   } = useForm<BioFormData>({
     resolver: zodResolver(bioSchema),
+    defaultValues: {
+        name: "Rohit Kumar",
+        title: "Flutter & IoT Developer",
+        description: "Results-driven Flutter Developer with hands-on experience in mobile application development, specializing in Android (Java) and cross-platform solutions using Flutter. Skilled in building scalable, high-performance apps, implementing unit testing, and collaborating within Agile teams.",
+        avatarUrl: "",
+        contactTitle: "Request Intel",
+        contactSubtitle: "Open a secure channel for inquiries, collaborations, or to discuss a project. All transmissions are monitored.",
+        modelUrl: "",
+        showGamesSection: false,
+    }
   });
 
   useEffect(() => {
     if (bio) {
       reset({
-        name: bio.name || "",
-        title: bio.title || "",
-        description: bio.description || "",
+        name: bio.name || "Rohit Kumar",
+        title: bio.title || "Flutter & IoT Developer",
+        description: bio.description || "Results-driven Flutter Developer with hands-on experience in mobile application development, specializing in Android (Java) and cross-platform solutions using Flutter. Skilled in building scalable, high-performance apps, implementing unit testing, and collaborating within Agile teams.",
         avatarUrl: bio.avatarUrl || "",
         contactTitle: bio.contactTitle || "Request Intel",
         contactSubtitle: bio.contactSubtitle || "Open a secure channel for inquiries, collaborations, or to discuss a project. All transmissions are monitored.",

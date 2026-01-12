@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "../ui/button";
@@ -27,9 +28,9 @@ const AnimatedText = ({ text }: { text: string }) => {
 
 const defaultBio: Bio = {
     id: "local-bio",
-    name: "Cyber Architect",
-    title: "Flutter & IoT Systems Architect",
-    description: "Specializing in creating robust, scalable, and intelligent systems by bridging the gap between embedded hardware and high-performance mobile applications.",
+    name: "Rohit Kumar",
+    title: "Flutter & IoT Developer",
+    description: "Results-driven Flutter Developer with hands-on experience in mobile application development, specializing in Android (Java) and cross-platform solutions using Flutter. Skilled in building scalable, high-performance apps, implementing unit testing, and collaborating within Agile teams.",
     avatarUrl: "",
     modelUrl: "https://sketchfab.com/models/0c74ca18fa6a4d05be9fe6ffa2206db8/embed"
 };
@@ -61,7 +62,7 @@ const Hero = () => {
     <section className="relative container mx-auto flex min-h-[calc(100vh-80px)] items-center px-4 py-20 md:px-6">
       <div className="absolute inset-0 -z-10 flex items-center justify-center overflow-hidden">
         <div className="font-headline text-[25vw] lg:text-[20vw] font-black text-foreground/5 select-none">
-          ENGINEER
+          DEVELOPER
         </div>
       </div>
       <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -79,11 +80,11 @@ const Hero = () => {
           ) : (
             <>
               <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tighter">
-                <span className="block text-primary text-glow"><AnimatedText text={bio?.title.split('&')[0] ?? "Flutter & IoT"} /></span>
-                <span className="block text-primary-foreground"><AnimatedText text={bio?.title.split('&')[1] ?? "Systems Architect"} /></span>
+                <span className="block text-primary text-glow"><AnimatedText text={bio?.name ?? "Rohit Kumar"} /></span>
+                <span className="block text-primary-foreground"><AnimatedText text={bio?.title ?? "Flutter & IoT Developer"} /></span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-lg">
-                {bio?.description ?? "Specializing in creating robust, scalable, and intelligent systems by bridging the gap between embedded hardware and high-performance mobile applications."}
+                {bio?.description ?? "Results-driven Flutter Developer with hands-on experience in mobile application development, specializing in Android (Java) and cross-platform solutions using Flutter."}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" asChild>
